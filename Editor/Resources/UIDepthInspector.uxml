@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement name="root" class="root">
+        <!-- Toolbar -->
+        <ui:VisualElement name="toolbar" class="toolbar">
+            <ui:VisualElement class="toolbar-row">
+                <ui:Button name="btn-front" text="Front" class="preset-btn" />
+                <ui:Button name="btn-iso" text="Iso" class="preset-btn" />
+                <ui:Button name="btn-side" text="Side" class="preset-btn" />
+                <ui:VisualElement class="toolbar-separator" />
+                <ui:Label text="Z-Explosion:" class="slider-label" />
+                <ui:Slider name="slider-explosion" low-value="0" high-value="50" value="0" class="explosion-slider" />
+                <ui:FloatField name="field-explosion" value="0" class="explosion-field" />
+            </ui:VisualElement>
+            <ui:VisualElement class="toolbar-row">
+                <ui:TextField name="search-field" class="search-field" />
+                <ui:Toggle name="toggle-raycast" text="Raycast Only" class="filter-toggle" />
+                <ui:Toggle name="toggle-warnings" text="Warnings" class="filter-toggle" />
+                <ui:Toggle name="toggle-active" text="Active Only" class="filter-toggle" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Main content split -->
+        <ui:TwoPaneSplitView name="split-view" fixed-pane-index="1" fixed-pane-initial-dimension="300" orientation="Horizontal">
+            <!-- Left: 3D Viewport (IMGUI) -->
+            <ui:IMGUIContainer name="viewport-container" class="viewport" />
+
+            <!-- Right: Stack list -->
+            <ui:VisualElement name="list-pane" class="list-pane">
+                <ui:ListView name="stack-list" class="stack-list" />
+                <ui:VisualElement class="list-footer">
+                    <ui:DropdownField name="canvas-filter" label="Canvas" class="canvas-dropdown" />
+                    <ui:Button name="btn-copy-stack" text="Copy Stack" class="copy-btn" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:TwoPaneSplitView>
+
+        <!-- Status bar -->
+        <ui:Label name="status-bar" text="No Canvas found" class="status-bar" />
+    </ui:VisualElement>
+</ui:UXML>
