@@ -24,6 +24,8 @@ namespace UIDepthInspector.Editor.Panels
 
         public void Bind(VisualElement root)
         {
+            if (root == null) return;
+
             _listView = root.Q<ListView>("stack-list");
             if (_listView != null)
             {
@@ -35,18 +37,22 @@ namespace UIDepthInspector.Editor.Panels
                 _listView.style.flexGrow = 1;
                 _listView.style.flexShrink = 0;
                 _listView.style.minHeight = 100;
-            }
-            _listView.selectionChanged += selection =>
-            {
-                foreach (var item in selection)
+
+                _listView.selectionChanged += selection =>
                 {
-                    if (item is UIElementEntry entry)
-                        OnEntryClicked?.Invoke(entry);
-                }
-            };
+                    foreach (var item in selection)
+                    {
+                        if (item is UIElementEntry entry)
+                            OnEntryClicked?.Invoke(entry);
+                    }
+                };
+            }
 
             _copyBtn = root.Q<Button>("btn-copy-stack");
-            _copyBtn.clicked += CopyStackToClipboard;
+            if (_copyBtn != null)
+            {
+                _copyBtn.clicked += CopyStackToClipboard;
+            }
         }
 
         public void SetEntries(IReadOnlyList<UIElementEntry> entries, UIToolbarPanel toolbar)
