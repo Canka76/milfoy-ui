@@ -46,6 +46,8 @@ com.openupm.ui-depth-inspector/   (repo root)
 ├── LICENSE.md                     # MIT
 ├── README.md
 ├── package.json                   # UPM manifest (version bumped by release-please)
+├── release-please-config.json     # release-please: release-type + extra-files
+├── .release-please-manifest.json  # release-please: current tracked version
 └── Editor/
     └── ...
 ```
@@ -134,7 +136,17 @@ echo "module.exports = { extends: ['@commitlint/config-conventional'] };" > comm
 - When the Release PR is merged: creates a git tag (`v1.0.0`, `v1.1.0`, etc.) and a GitHub Release.
 - Bumps `version` in `package.json` (semver: `feat` → minor, `fix` → patch, `feat!` → major).
 
-**Version target:** `package.json` → `version` field via `extra-files` config.
+**Version target:** `package.json` → `version` field. release-please is configured via an inline `release-please-config.json` committed to the repo root:
+```json
+{
+  "release-type": "simple",
+  "extra-files": ["package.json"]
+}
+```
+And a `.release-please-manifest.json` tracking the current version:
+```json
+{ ".": "0.1.0" }
+```
 
 **UPM integration:** Contributors install specific releases by pinning the git tag in their project's `manifest.json`:
 ```json
