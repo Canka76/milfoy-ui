@@ -79,68 +79,6 @@ namespace UIDepthInspector.Editor
                 viewportContainerElem.style.minWidth = 200;
             }
 
-            var header = rootVisualElement.Q("window-header");
-            if (header != null)
-            {
-                header.style.flexDirection = FlexDirection.Row;
-                header.style.alignItems = Align.Center;
-                header.style.paddingLeft = 8;
-                header.style.paddingRight = 8;
-                header.style.paddingTop = 6;
-                header.style.paddingBottom = 6;
-                header.style.backgroundColor = new Color(0.16f, 0.16f, 0.16f, 1f);
-                header.style.borderBottomWidth = 1;
-                header.style.borderBottomColor = new Color(0.11f, 0.11f, 0.11f, 1f);
-            }
-
-            var stackHeader = rootVisualElement.Q("stack-header");
-            if (stackHeader != null)
-            {
-                stackHeader.style.flexDirection = FlexDirection.Row;
-                stackHeader.style.alignItems = Align.Center;
-                stackHeader.style.paddingLeft = 8;
-                stackHeader.style.paddingRight = 8;
-                stackHeader.style.paddingTop = 4;
-                stackHeader.style.paddingBottom = 4;
-                stackHeader.style.backgroundColor = new Color(0.14f, 0.14f, 0.14f, 1f);
-                stackHeader.style.borderBottomWidth = 1;
-                stackHeader.style.borderBottomColor = new Color(0.10f, 0.10f, 0.10f, 1f);
-            }
-
-            var headerColActions = rootVisualElement.Q("header-col-actions");
-            if (headerColActions != null)
-            {
-                headerColActions.style.flexDirection = FlexDirection.Row;
-                headerColActions.style.alignItems = Align.Center;
-                headerColActions.style.flexShrink = 0;
-                headerColActions.style.marginLeft = StyleKeyword.Auto;
-            }
-
-            var colLabels = rootVisualElement.Query<Label>(className: "col-action-lbl").ToList();
-            foreach (var lbl in colLabels)
-            {
-                lbl.style.width = 24;
-                lbl.style.unityTextAlign = TextAnchor.MiddleCenter;
-                lbl.style.marginLeft = 2;
-                lbl.style.fontSize = 9;
-                lbl.style.color = new Color(0.55f, 0.55f, 0.55f, 1f);
-                lbl.style.unityFontStyleAndWeight = FontStyle.Bold;
-            }
-            var logo = rootVisualElement.Q("header-logo");
-            if (logo != null)
-            {
-                logo.style.width = 16;
-                logo.style.height = 16;
-                logo.style.minWidth = 16;
-                logo.style.minHeight = 16;
-                logo.style.borderTopLeftRadius = 4;
-                logo.style.borderTopRightRadius = 4;
-                logo.style.borderBottomLeftRadius = 4;
-                logo.style.borderBottomRightRadius = 4;
-                logo.style.backgroundColor = new Color(0.38f, 0.63f, 0.88f, 1f);
-                logo.style.marginRight = 6;
-            }
-
             var statusBarElem = rootVisualElement.Q<Label>("status-bar");
             if (statusBarElem != null)
             {
@@ -148,9 +86,9 @@ namespace UIDepthInspector.Editor
                 statusBarElem.style.paddingRight = 8;
                 statusBarElem.style.paddingTop = 3;
                 statusBarElem.style.paddingBottom = 3;
-                statusBarElem.style.backgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
+                statusBarElem.style.backgroundColor = new Color(0.12f, 0.12f, 0.12f, 1f);
                 statusBarElem.style.borderTopWidth = 1;
-                statusBarElem.style.borderTopColor = new Color(0.12f, 0.12f, 0.12f, 1f);
+                statusBarElem.style.borderTopColor = new Color(0.09f, 0.09f, 0.09f, 1f);
                 statusBarElem.style.color = new Color(0.65f, 0.65f, 0.65f, 1f);
                 statusBarElem.style.fontSize = 11;
             }
