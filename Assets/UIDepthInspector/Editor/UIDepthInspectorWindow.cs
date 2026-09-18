@@ -18,7 +18,7 @@ namespace UIDepthInspector.Editor
         public static void ShowWindow()
         {
             var wnd = GetWindow<UIDepthInspectorWindow>();
-            wnd.titleContent = new GUIContent("UI Depth Inspector");
+            wnd.UpdateTitleContent();
             wnd.minSize = new Vector2(600, 400);
         }
 
@@ -41,10 +41,10 @@ namespace UIDepthInspector.Editor
 
         void OnEnable()
         {
+            UpdateTitleContent();
             _cache = new UIRenderTreeCache();
             _viewport = new UIPreview3DViewport();
             _viewport.Initialize();
-
             rootVisualElement.style.flexGrow = 1;
             rootVisualElement.style.height = Length.Percent(100);
             rootVisualElement.style.width = Length.Percent(100);
@@ -375,6 +375,52 @@ namespace UIDepthInspector.Editor
         void RebuildViewportFromFiltered()
         {
             // Viewport shows all entries; filtering only affects list visibility
+        }
+
+        void UpdateTitleContent()
+        {
+            // 1. Try loading custom icon asset
+            var customIcon = LoadEditorAsset<Texture2D>("MilfoyIcon", "png");
+
+            // 2. If no custom icon asset yet, generate a crisp 16x16 3D layer icon
+            if (customIcon == null)
+            {
+                customIcon = CreateTabIconTexture();
+            }
+
+            titleContent = new GUIContent("Milfoy", customIcon, "Milfoy — UI Layer & 3D Depth Inspector");
+        }
+
+        static Texture2D s_CachedTabIcon;
+        static Texture2D CreateTabIconTexture()
+        {
+            if (s_CachedTabIcon != null) return s_CachedTabIcon;
+
+            s_CachedTabIcon = new Texture2D(16, 16, TextureFormat.RGBA32, false);
+            s_CachedTabIcon.hideFlags = HideFlags.HideAndDontSave;
+
+            var clear = new Color(0, 0, 0, 0);
+            var cyan = new Color(0.38f, 0.65f, 0.95f, 1f); // #60A0E0
+            var white = new Color(0.9f, 0.95f, 1f, 1f);
+
+            for (int y = 0; y < 16; y++)
+            {
+                for (int x = 0; x < 16; x++)
+                {
+                    s_CachedTabIcon.SetPixel(x, y, clear);
+                }
+            }
+
+            // Draw 3 layered isometric / stacked rectangles (symbolizing 3D UI Depth layers)
+            // Bottom layer
+            for (int x = 2; x <= 13; x++) { s_CachedTabIcon.SetPixel(x, 3, cyan); s_CachedTabIcon.SetPixel(x, 4, cyan); }
+            // Middle layer
+            for (int x = 3; x <= 12; x++) { s_CachedTabIcon.SetPixel(x, 7, cyan); s_CachedTabIcon.SetPixel(x, 8, cyan); }
+            // Top layer (highlighted)
+            for (int x = 4; x <= 11; x++) { s_CachedTabIcon.SetPixel(x, 11, white); s_CachedTabIcon.SetPixel(x, 12, white); }
+
+            s_CachedTabIcon.Apply();
+            return s_CachedTabIcon;
         }
 
         static T LoadEditorAsset<T>(string filenameWithoutExt, string extension) where T : UnityEngine.Object
