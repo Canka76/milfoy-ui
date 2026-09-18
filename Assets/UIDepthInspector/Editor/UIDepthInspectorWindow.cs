@@ -93,31 +93,34 @@ namespace UIDepthInspector.Editor
                 viewportContainer.onGUIHandler = () =>
                 {
                     var rect = viewportContainer.contentRect;
-                    if (rect.width < 1 || rect.height < 1) return;
-
                     var evt = Event.current;
-                    _viewport.HandleInput(evt, rect);
 
-                    // Left-click picking
-                    if (evt.type == EventType.MouseDown && evt.button == 0 && !evt.alt)
+                    // Handle interactive inputs (mouse drag orbit, zoom, pan) on any layout/input event
+                    if (rect.width > 1 && rect.height > 1)
                     {
-                        int picked = _viewport.GetPickedEntryIndex(evt.mousePosition, rect);
-                        if (picked >= 0)
-                        {
-                            var entries = _cache.Entries;
-                            if (picked < entries.Count && entries[picked].Transform != null)
-                                Selection.activeGameObject = entries[picked].Transform.gameObject;
-                            evt.Use();
-                        }
-                    }
+                        _viewport.HandleInput(evt, rect);
 
-                    _viewport.OnGUI(rect);
+                        // Left-click picking
+                        if (evt.type == EventType.MouseDown && evt.button == 0 && !evt.alt)
+                        {
+                            int picked = _viewport.GetPickedEntryIndex(evt.mousePosition, rect);
+                            if (picked >= 0)
+                            {
+                                var entries = _cache.Entries;
+                                if (picked < entries.Count && entries[picked].Transform != null)
+                                    Selection.activeGameObject = entries[picked].Transform.gameObject;
+                                evt.Use();
+                            }
+                        }
+
+                        // Render 3D preview viewport (automatically guards EventType.Repaint internally)
+                        _viewport.OnGUI(rect);
+                    }
 
                     if (evt.type == EventType.MouseDrag || evt.type == EventType.ScrollWheel)
                         _needsRepaint = true;
                 };
             }
-
             // Selection sync
             Selection.selectionChanged += OnSelectionChanged;
             EditorApplication.update += OnEditorUpdate;

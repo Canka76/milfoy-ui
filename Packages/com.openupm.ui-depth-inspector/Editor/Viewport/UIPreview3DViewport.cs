@@ -201,11 +201,22 @@ namespace UIDepthInspector.Editor.Viewport
 
         public void OnGUI(Rect rect)
         {
-            if (_previewUtility == null || rect.width <= 1 || rect.height <= 1) return;
+            if (_previewUtility == null) return;
 
-            _previewUtility.BeginPreview(rect, GUIStyle.none);
+            // PreviewRenderUtility.BeginPreview allocates a RenderTexture and MUST only run during Repaint events
+            // with positive, non-zero dimensions.
+            if (Event.current.type != EventType.Repaint) return;
 
-            UpdateCamera(rect);
+            int width = Mathf.Max(1, (int)rect.width);
+            int height = Mathf.Max(1, (int)rect.height);
+            if (width < 2 || height < 2) return;
+
+            // Use normalized origin (0, 0, width, height) for offscreen preview render target
+            var previewRect = new Rect(0, 0, width, height);
+
+            _previewUtility.BeginPreview(previewRect, GUIStyle.none);
+
+            UpdateCamera(previewRect);
             _previewUtility.camera.Render();
 
             // Draw selection highlight
@@ -243,7 +254,10 @@ namespace UIDepthInspector.Editor.Viewport
             }
 
             var result = _previewUtility.EndPreview();
-            GUI.DrawTexture(rect, result, ScaleMode.StretchToFill, false);
+            if (result != null)
+            {
+                GUI.DrawTexture(rect, result, ScaleMode.StretchToFill, false);
+            }
         }
 
         void UpdateCamera(Rect viewportRect)
