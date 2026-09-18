@@ -13,8 +13,8 @@ namespace UIDepthInspector.Editor.Panels
     {
         public Action<ViewPreset> OnViewPresetChanged;
         public Action<float> OnExplosionChanged;
+        public Action<float> OnThicknessChanged;
         public Action OnFilterChanged;
-
         public string SearchQuery { get; private set; } = "";
         public bool RaycastOnly { get; private set; }
         public bool WarningsOnly { get; private set; }
@@ -89,40 +89,54 @@ namespace UIDepthInspector.Editor.Panels
             }
 
             _slider = root.Q<Slider>("slider-explosion");
-            if (_slider != null)
+            _floatField = root.Q<FloatField>("field-explosion");
+
+            if (_slider != null && _floatField != null)
             {
                 _slider.style.flexGrow = 1;
-                _slider.style.minWidth = 100;
-            }
-
-            _floatField = root.Q<FloatField>("field-explosion");
-            if (_floatField != null)
-            {
-                _floatField.style.width = 50;
+                _slider.style.minWidth = 60;
+                _floatField.style.width = 45;
                 _floatField.style.marginLeft = 4;
+
+                _slider.RegisterValueChangedCallback(evt =>
+                {
+                    _floatField.SetValueWithoutNotify(evt.newValue);
+                    OnExplosionChanged?.Invoke(evt.newValue);
+                });
+
+                _floatField.RegisterValueChangedCallback(evt =>
+                {
+                    float clamped = UnityEngine.Mathf.Clamp(evt.newValue, 0f, 50f);
+                    _slider.SetValueWithoutNotify(clamped);
+                    _floatField.SetValueWithoutNotify(clamped);
+                    OnExplosionChanged?.Invoke(clamped);
+                });
             }
 
-            var search = root.Q<TextField>("search-field");
-            if (search != null)
+            var thicknessSlider = root.Q<Slider>("slider-thickness");
+            var thicknessField = root.Q<FloatField>("field-thickness");
+
+            if (thicknessSlider != null && thicknessField != null)
             {
-                search.style.flexGrow = 1;
-                search.style.marginRight = 6;
+                thicknessSlider.style.flexGrow = 1;
+                thicknessSlider.style.minWidth = 60;
+                thicknessField.style.width = 45;
+                thicknessField.style.marginLeft = 4;
+
+                thicknessSlider.RegisterValueChangedCallback(evt =>
+                {
+                    thicknessField.SetValueWithoutNotify(evt.newValue);
+                    OnThicknessChanged?.Invoke(evt.newValue);
+                });
+
+                thicknessField.RegisterValueChangedCallback(evt =>
+                {
+                    float clamped = UnityEngine.Mathf.Clamp(evt.newValue, 0.01f, 0.5f);
+                    thicknessSlider.SetValueWithoutNotify(clamped);
+                    thicknessField.SetValueWithoutNotify(clamped);
+                    OnThicknessChanged?.Invoke(clamped);
+                });
             }
-
-            _slider.RegisterValueChangedCallback(evt =>
-            {
-                _floatField.SetValueWithoutNotify(evt.newValue);
-                OnExplosionChanged?.Invoke(evt.newValue);
-            });
-
-            _floatField.RegisterValueChangedCallback(evt =>
-            {
-                float clamped = UnityEngine.Mathf.Clamp(evt.newValue, 0f, 50f);
-                _slider.SetValueWithoutNotify(clamped);
-                _floatField.SetValueWithoutNotify(clamped);
-                OnExplosionChanged?.Invoke(clamped);
-            });
-
             root.Q<TextField>("search-field").RegisterValueChangedCallback(evt =>
             {
                 SearchQuery = evt.newValue ?? "";

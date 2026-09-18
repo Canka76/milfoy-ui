@@ -10,7 +10,10 @@
             <ui:Label text="Z-Explosion:" class="slider-label" tooltip="Spreads UI layers apart along the Z-axis according to draw order" />
             <ui:Slider name="slider-explosion" low-value="0" high-value="50" value="0" class="explosion-slider" tooltip="Adjust 3D layer explosion separation distance" />
             <ui:FloatField name="field-explosion" value="0" class="explosion-field" />
-        </ui:VisualElement>
+            <ui:VisualElement class="toolbar-separator" />
+            <ui:Label text="Thickness:" class="slider-label" tooltip="Adjust physical 3D card extrusion thickness" />
+            <ui:Slider name="slider-thickness" low-value="0.01" high-value="0.5" value="0.12" class="thickness-slider" tooltip="Adjust slab extrusion thickness" />
+            <ui:FloatField name="field-thickness" value="0.12" class="thickness-field" />
         <ui:VisualElement name="toolbar-row-filters" class="toolbar-row">
             <ui:TextField name="search-field" class="search-field" placeholder-text="Search UI elements by name..." tooltip="Filter hierarchy items by name" />
             <ui:Toggle name="toggle-raycast" text="Raycast Only" class="filter-toggle" tooltip="Show only elements with raycastTarget enabled" />

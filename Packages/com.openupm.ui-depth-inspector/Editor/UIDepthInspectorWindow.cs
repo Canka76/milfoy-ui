@@ -113,6 +113,11 @@ namespace UIDepthInspector.Editor
                 _viewport.SetExplosionFactor(factor);
                 _needsRepaint = true;
             };
+            _toolbar.OnThicknessChanged += thickness =>
+            {
+                _viewport.SetSlabThickness(thickness);
+                _needsRepaint = true;
+            };
             _toolbar.OnFilterChanged += () =>
             {
                 _listPanel.ApplyFilters(_toolbar);
