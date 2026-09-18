@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../../.github/assets/logo.png" alt="milfoy-ui logo" width="140"/>
+  <img src=".github/assets/logo.png" alt="milfoy-ui logo" width="140"/>
 </p>
 
 <h1 align="center">milfoy-ui</h1>
@@ -12,11 +12,11 @@
   <a href="https://unity.com"><img src="https://img.shields.io/badge/Unity-6000.0%2B-blue.svg?logo=unity" alt="Unity 6000.0+"/></a>
   <a href="https://package.openupm.com"><img src="https://img.shields.io/npm/v/com.openupm.ui-depth-inspector?label=openupm&registry_uri=https://package.openupm.com" alt="OpenUPM"/></a>
   <a href="LICENSE.md"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License"/></a>
-  <a href="../../CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome"/></a>
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome"/></a>
 </p>
 
 <p align="center">
-  <img src="../../.github/assets/banner.gif" alt="milfoy-ui banner" width="100%"/>
+  <img src=".github/assets/banner.gif" alt="milfoy-ui banner" width="100%"/>
 </p>
 
 ---
@@ -138,7 +138,7 @@ Or append directly to your `Packages/manifest.json`:
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines on branch naming, atomic commit formats, and the PR review process.
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on branch naming, atomic commit formats, and the PR review process.
 
 ---
 
