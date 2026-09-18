@@ -96,17 +96,22 @@ namespace UIDepthInspector.Editor.Panels
             row.Add(new Label { name = "name", pickingMode = PickingMode.Ignore });
             row.Add(new Label { name = "warning", pickingMode = PickingMode.Ignore });
 
+            var actions = new VisualElement { name = "actions" };
+            actions.AddToClassList("row-actions");
+
             var eyeBtn = new Button { name = "eye", text = "👁" };
             eyeBtn.AddToClassList("row-btn");
-            row.Add(eyeBtn);
+            actions.Add(eyeBtn);
 
             var rayBtn = new Button { name = "ray", text = "◎" };
             rayBtn.AddToClassList("row-btn");
-            row.Add(rayBtn);
+            actions.Add(rayBtn);
 
             var soloBtn = new Button { name = "solo", text = "S" };
             soloBtn.AddToClassList("row-btn");
-            row.Add(soloBtn);
+            actions.Add(soloBtn);
+
+            row.Add(actions);
 
             return row;
         }

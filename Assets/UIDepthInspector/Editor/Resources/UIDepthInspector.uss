@@ -66,8 +66,8 @@
 
 .list-pane {
     flex-direction: column;
+    min-width: 340px;
 }
-
 .stack-list {
     flex-grow: 1;
 }
@@ -102,9 +102,11 @@
 .stack-row {
     flex-direction: row;
     align-items: center;
-    padding: 2px 4px;
+    padding: 2px 6px;
     border-bottom-width: 1px;
     border-bottom-color: #333;
+    height: 26px;
+    overflow: hidden;
 }
 
 .stack-row:hover {
@@ -116,17 +118,22 @@
 }
 
 .stack-index {
-    width: 32px;
+    width: 30px;
+    min-width: 30px;
+    flex-shrink: 0;
     font-size: 10px;
     -unity-font-style: bold;
     color: #888;
     -unity-text-align: middle-right;
-    margin-right: 4px;
+    margin-right: 6px;
 }
 
 .stack-dot {
     width: 10px;
     height: 10px;
+    min-width: 10px;
+    min-height: 10px;
+    flex-shrink: 0;
     border-radius: 5px;
     margin-right: 6px;
 }
@@ -138,9 +145,12 @@
 
 .stack-name {
     flex-grow: 1;
+    flex-shrink: 1;
     font-size: 12px;
     overflow: hidden;
     text-overflow: ellipsis;
+    -unity-text-align: middle-left;
+    margin-right: 4px;
 }
 
 .stack-name--inactive {
@@ -148,17 +158,31 @@
 }
 
 .warning-badge {
+    flex-shrink: 0;
     font-size: 10px;
     color: #FFB030;
-    margin-right: 4px;
+    background-color: rgba(255, 176, 48, 0.15);
+    border-radius: 3px;
+    padding: 1px 4px;
+    margin-right: 6px;
     -unity-font-style: bold;
+}
+
+.row-actions {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: auto;
 }
 
 .row-btn {
     width: 22px;
     height: 22px;
-    margin-left: 1px;
-    font-size: 12px;
+    min-width: 22px;
+    min-height: 22px;
+    flex-shrink: 0;
+    margin-left: 2px;
+    font-size: 11px;
     padding: 0;
     -unity-text-align: middle-center;
 }
