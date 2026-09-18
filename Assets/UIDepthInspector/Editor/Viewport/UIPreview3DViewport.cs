@@ -47,19 +47,22 @@ namespace UIDepthInspector.Editor.Viewport
             _previewUtility.camera.farClipPlane = 500f;
             _previewUtility.camera.clearFlags = CameraClearFlags.SolidColor;
             _previewUtility.camera.backgroundColor = new Color(0.12f, 0.12f, 0.12f, 1f); // Studio dark #1f1f1f
-
             var shader = Shader.Find("Hidden/UIDepthInspector/QuadDiagnostic");
+            if (shader == null || !shader.isSupported)
+            {
+                shader = Shader.Find("Sprites/Default") ?? Shader.Find("Unlit/Color");
+            }
 
-            _matRaycast = new Material(shader) { color = new Color(0.878f, 0.376f, 0.376f, 0.7f) };
+            _matRaycast = new Material(shader) { hideFlags = HideFlags.HideAndDontSave, color = new Color(0.878f, 0.376f, 0.376f, 0.7f) };
             _matRaycast.SetFloat("_DiagnosticMode", 0f);
 
-            _matPassive = new Material(shader) { color = new Color(0.376f, 0.627f, 0.878f, 0.5f) };
+            _matPassive = new Material(shader) { hideFlags = HideFlags.HideAndDontSave, color = new Color(0.376f, 0.627f, 0.878f, 0.5f) };
             _matPassive.SetFloat("_DiagnosticMode", 0f);
 
-            _matInactive = new Material(shader) { color = new Color(0.5f, 0.5f, 0.5f, 0.3f) };
-            _matInactive.SetFloat("_DiagnosticMode", 0f);
+            _matInactive = new Material(shader) { hideFlags = HideFlags.HideAndDontSave, color = new Color(0.28f, 0.28f, 0.32f, 0.25f) };
+            _matInactive.SetFloat("_DiagnosticMode", 2f);
 
-            _matGhost = new Material(shader) { color = new Color(1f, 0.75f, 0.2f, 0.85f) };
+            _matGhost = new Material(shader) { hideFlags = HideFlags.HideAndDontSave, color = new Color(1f, 0.75f, 0.2f, 0.85f) };
             _matGhost.SetFloat("_DiagnosticMode", 1f);
         }
 
@@ -225,9 +228,14 @@ namespace UIDepthInspector.Editor.Viewport
 
             _previewUtility.BeginPreview(previewRect, GUIStyle.none);
 
+            // If an element is highlighted, update the dynamic pulsing shader values before camera render
+            if (_highlightIndex >= 0)
+            {
+                UpdateQuadColors();
+            }
+
             UpdateCamera(previewRect);
             _previewUtility.camera.Render();
-
             // Draw high-contrast hitbox border rings around active blockers
             if (_currentEntries != null)
             {
@@ -379,15 +387,20 @@ namespace UIDepthInspector.Editor.Viewport
 
         Color GetDefaultColor(DiagnosticFlags flags)
         {
-            if ((flags & DiagnosticFlags.Inactive) != 0) return new Color(0.5f, 0.5f, 0.5f, 0.3f);
+            if ((flags & DiagnosticFlags.Inactive) != 0) return new Color(0.28f, 0.28f, 0.32f, 0.25f);
             if ((flags & (DiagnosticFlags.GhostBlocker | DiagnosticFlags.ZeroSize)) != 0) return new Color(1f, 0.75f, 0.2f, 0.85f);
             if ((flags & DiagnosticFlags.RaycastBlocker) != 0) return new Color(0.878f, 0.376f, 0.376f, 0.7f);
             return new Color(0.376f, 0.627f, 0.878f, 0.5f);
         }
 
+        static readonly int HighlightPropId = Shader.PropertyToID("_Highlight");
+
         void UpdateQuadColors()
         {
             if (_currentEntries == null) return;
+
+            float time = (float)EditorApplication.timeSinceStartup;
+            float pulse = 0.5f + 0.5f * Mathf.Sin(time * 3.0f);
 
             for (int i = 0; i < _previewObjects.Count && i < _currentEntries.Count; i++)
             {
@@ -399,41 +412,71 @@ namespace UIDepthInspector.Editor.Viewport
 
                 var entry = _currentEntries[i];
                 Color baseColor = entry.CustomColor ?? GetDefaultColor(entry.Flags);
+                float highlightVal = 0f;
 
                 if (_highlightIndex >= 0)
                 {
                     if (i != _highlightIndex)
                     {
-                        baseColor.a *= 0.55f;
+                        baseColor.a *= 0.65f; // Balanced dimming on unselected cards
                     }
                     else
                     {
-                        baseColor.a = Mathf.Max(baseColor.a, 0.95f);
+                        baseColor.a = 1.0f;
+                        highlightVal = 0.6f + 0.4f * pulse; // Animated pulse on shader
                     }
                 }
 
                 _propBlock.Clear();
                 _propBlock.SetColor(ColorPropId, baseColor);
+                _propBlock.SetFloat(HighlightPropId, highlightVal);
                 mr.SetPropertyBlock(_propBlock);
             }
         }
-
         void DrawWireframeCage(Transform t, Bounds localBounds)
         {
-            var matrix = t.localToWorldMatrix;
-            Handles.matrix = matrix;
+            Handles.matrix = t.localToWorldMatrix;
 
-            // 1. Inner Core: Neon Cyan
-            Handles.color = new Color(0.0f, 0.9f, 1.0f, 1.0f);
+            float time = (float)EditorApplication.timeSinceStartup;
+            float pulse = 0.5f + 0.5f * Mathf.Sin(time * 3.0f);
+
+            // 1. Subtle bounding wireframe
+            Handles.color = new Color(0.0f, 0.85f, 1.0f, 0.25f + 0.10f * pulse);
             Handles.DrawWireCube(localBounds.center, localBounds.size * 1.01f);
 
-            // 2. Inner Glow
-            Handles.color = new Color(0.0f, 0.9f, 1.0f, 0.4f);
-            Handles.DrawWireCube(localBounds.center, localBounds.size * 1.04f);
+            // 2. Precision 3-axis HUD corner L-brackets
+            Vector3 min = localBounds.min * 1.01f;
+            Vector3 max = localBounds.max * 1.01f;
+            float armX = Mathf.Min(localBounds.size.x * 0.20f, 0.6f);
+            float armY = Mathf.Min(localBounds.size.y * 0.20f, 0.6f);
+            float armZ = Mathf.Min(localBounds.size.z * 0.40f, 0.15f);
 
-            // 3. Outer Glow
-            Handles.color = new Color(0.0f, 0.9f, 1.0f, 0.15f);
-            Handles.DrawWireCube(localBounds.center, localBounds.size * 1.08f);
+            Handles.color = new Color(0.0f, 0.95f, 1.0f, 0.85f + 0.15f * pulse);
+
+            float[] xs = { min.x, max.x };
+            float[] ys = { min.y, max.y };
+            float[] zs = { min.z, max.z };
+
+            for (int ix = 0; ix < 2; ix++)
+            {
+                float x = xs[ix];
+                float dx = (ix == 0) ? armX : -armX;
+                for (int iy = 0; iy < 2; iy++)
+                {
+                    float y = ys[iy];
+                    float dy = (iy == 0) ? armY : -armY;
+                    for (int iz = 0; iz < 2; iz++)
+                    {
+                        float z = zs[iz];
+                        float dz = (iz == 0) ? armZ : -armZ;
+                        Vector3 pt = new Vector3(x, y, z);
+
+                        Handles.DrawLine(pt, pt + new Vector3(dx, 0, 0));
+                        Handles.DrawLine(pt, pt + new Vector3(0, dy, 0));
+                        Handles.DrawLine(pt, pt + new Vector3(0, 0, dz));
+                    }
+                }
+            }
 
             Handles.matrix = Matrix4x4.identity;
         }

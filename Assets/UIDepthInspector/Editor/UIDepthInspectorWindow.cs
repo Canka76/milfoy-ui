@@ -182,10 +182,10 @@ namespace UIDepthInspector.Editor
                         _needsRepaint = true;
                 };
             }
-            // Selection sync
+            // Selection sync & Live change tracking
             Selection.selectionChanged += OnSelectionChanged;
             EditorApplication.update += OnEditorUpdate;
-
+            ObjectChangeEvents.changesPublished += OnObjectChangesPublished;
             // Initial view preset
             _viewport.SetViewPreset(ViewPreset.Isometric);
 
@@ -199,6 +199,7 @@ namespace UIDepthInspector.Editor
 
             Selection.selectionChanged -= OnSelectionChanged;
             EditorApplication.update -= OnEditorUpdate;
+            ObjectChangeEvents.changesPublished -= OnObjectChangesPublished;
 
             _cache?.Dispose();
             _viewport?.Dispose();
@@ -221,11 +222,22 @@ namespace UIDepthInspector.Editor
                 _needsRepaint = true;
             }
 
+            // If an element is selected, trigger smooth animated pulse repaint
+            if (Selection.activeGameObject != null)
+            {
+                _needsRepaint = true;
+            }
             if (_needsRepaint)
             {
                 _needsRepaint = false;
                 Repaint();
             }
+        }
+
+        void OnObjectChangesPublished(ref ObjectChangeEventStream stream)
+        {
+            _cache.Invalidate();
+            _needsRepaint = true;
         }
 
         void OnSelectionChanged()

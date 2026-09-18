@@ -169,27 +169,14 @@ namespace UIDepthInspector.Editor.Panels
             indexLbl.style.color = new Color(0.6f, 0.6f, 0.6f, 1f);
             mainRow.Add(indexLbl);
 
-            var dot = new VisualElement { name = "dot" };
-            dot.AddToClassList("stack-dot");
-            dot.style.width = 10;
-            dot.style.height = 10;
-            dot.style.minWidth = 10;
-            dot.style.minHeight = 10;
-            dot.style.flexShrink = 0;
-            dot.style.borderTopLeftRadius = 5;
-            dot.style.borderTopRightRadius = 5;
-            dot.style.borderBottomLeftRadius = 5;
-            dot.style.borderBottomRightRadius = 5;
-            dot.style.marginRight = 6;
-            mainRow.Add(dot);
-            var colorPicker = new ColorField { name = "color-picker", showAlpha = true, showEyeDropper = true };
+            var colorPicker = new ColorField { name = "color-picker", showAlpha = true, showEyeDropper = true, tooltip = "Assign custom diagnostic color (Right-click to reset)" };
             colorPicker.AddToClassList("color-picker");
-            colorPicker.style.width = 24;
-            colorPicker.style.height = 16;
-            colorPicker.style.minWidth = 24;
-            colorPicker.style.minHeight = 16;
+            colorPicker.style.width = 32;
+            colorPicker.style.height = 18;
+            colorPicker.style.minWidth = 32;
+            colorPicker.style.minHeight = 18;
             colorPicker.style.flexShrink = 0;
-            colorPicker.style.marginRight = 4;
+            colorPicker.style.marginRight = 6;
             colorPicker.style.marginLeft = 0;
             colorPicker.style.marginTop = 0;
             colorPicker.style.marginBottom = 0;
@@ -330,10 +317,10 @@ namespace UIDepthInspector.Editor.Panels
             {
                 row.userData = new RowHolder { Entry = entry };
             }
-
-            // High-readability selection highlighting
+            // High-readability selection & active state styling
             bool isSelected = _selectedGlobalIndex == entry.GlobalDrawIndex;
             row.EnableInClassList("stack-row-container--selected", isSelected);
+            row.EnableInClassList("stack-row--inactive", !entry.IsActive);
 
             // Color picker
             var colorPicker = row.Q<ColorField>("color-picker");
@@ -348,12 +335,6 @@ namespace UIDepthInspector.Editor.Panels
             {
                 indexLabel.text = $"#{entry.GlobalDrawIndex:D2}";
             }
-
-            // Update dot in-place
-            var dot = row.Q("dot");
-            if (dot != null)
-                UIDiagnosticBadges.UpdateDot(dot, entry.Flags);
-
             var nameLabel = row.Q<Label>("name");
             if (nameLabel != null)
             {
