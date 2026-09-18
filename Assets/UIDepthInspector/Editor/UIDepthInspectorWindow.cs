@@ -93,6 +93,39 @@ namespace UIDepthInspector.Editor
                 header.style.borderBottomColor = new Color(0.11f, 0.11f, 0.11f, 1f);
             }
 
+            var stackHeader = rootVisualElement.Q("stack-header");
+            if (stackHeader != null)
+            {
+                stackHeader.style.flexDirection = FlexDirection.Row;
+                stackHeader.style.alignItems = Align.Center;
+                stackHeader.style.paddingLeft = 8;
+                stackHeader.style.paddingRight = 8;
+                stackHeader.style.paddingTop = 4;
+                stackHeader.style.paddingBottom = 4;
+                stackHeader.style.backgroundColor = new Color(0.14f, 0.14f, 0.14f, 1f);
+                stackHeader.style.borderBottomWidth = 1;
+                stackHeader.style.borderBottomColor = new Color(0.10f, 0.10f, 0.10f, 1f);
+            }
+
+            var headerColActions = rootVisualElement.Q("header-col-actions");
+            if (headerColActions != null)
+            {
+                headerColActions.style.flexDirection = FlexDirection.Row;
+                headerColActions.style.alignItems = Align.Center;
+                headerColActions.style.flexShrink = 0;
+                headerColActions.style.marginLeft = StyleKeyword.Auto;
+            }
+
+            var colLabels = rootVisualElement.Query<Label>(className: "col-action-lbl").ToList();
+            foreach (var lbl in colLabels)
+            {
+                lbl.style.width = 24;
+                lbl.style.unityTextAlign = TextAnchor.MiddleCenter;
+                lbl.style.marginLeft = 2;
+                lbl.style.fontSize = 9;
+                lbl.style.color = new Color(0.55f, 0.55f, 0.55f, 1f);
+                lbl.style.unityFontStyleAndWeight = FontStyle.Bold;
+            }
             var logo = rootVisualElement.Q("header-logo");
             if (logo != null)
             {

@@ -31,13 +31,13 @@ namespace UIDepthInspector.Editor.Panels
             var toolbar = root.Q("toolbar");
             if (toolbar != null)
             {
-                toolbar.style.paddingLeft = 4;
-                toolbar.style.paddingRight = 4;
-                toolbar.style.paddingTop = 4;
-                toolbar.style.paddingBottom = 4;
-                toolbar.style.backgroundColor = new Color(0.22f, 0.22f, 0.22f, 1f);
+                toolbar.style.paddingLeft = 6;
+                toolbar.style.paddingRight = 6;
+                toolbar.style.paddingTop = 5;
+                toolbar.style.paddingBottom = 5;
+                toolbar.style.backgroundColor = new Color(0.20f, 0.20f, 0.20f, 1f);
                 toolbar.style.borderBottomWidth = 1;
-                toolbar.style.borderBottomColor = new Color(0.13f, 0.13f, 0.13f, 1f);
+                toolbar.style.borderBottomColor = new Color(0.12f, 0.12f, 0.12f, 1f);
             }
 
             var row1 = root.Q("toolbar-row-presets");
@@ -45,7 +45,7 @@ namespace UIDepthInspector.Editor.Panels
             {
                 row1.style.flexDirection = FlexDirection.Row;
                 row1.style.alignItems = Align.Center;
-                row1.style.marginBottom = 3;
+                row1.style.marginBottom = 4;
             }
 
             var row2 = root.Q("toolbar-row-filters");
@@ -55,6 +55,15 @@ namespace UIDepthInspector.Editor.Panels
                 row2.style.alignItems = Align.Center;
             }
 
+            var sep = root.Q("toolbar-separator");
+            if (sep != null)
+            {
+                sep.style.width = 1;
+                sep.style.height = 16;
+                sep.style.backgroundColor = new Color(0.35f, 0.35f, 0.35f, 1f);
+                sep.style.marginLeft = 6;
+                sep.style.marginRight = 6;
+            }
             var btnFront = root.Q<Button>("btn-front");
             if (btnFront != null)
             {

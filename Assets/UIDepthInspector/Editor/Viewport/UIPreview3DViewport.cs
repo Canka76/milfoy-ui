@@ -45,7 +45,7 @@ namespace UIDepthInspector.Editor.Viewport
             _previewUtility.camera.nearClipPlane = 0.01f;
             _previewUtility.camera.farClipPlane = 500f;
             _previewUtility.camera.clearFlags = CameraClearFlags.SolidColor;
-            _previewUtility.camera.backgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
+            _previewUtility.camera.backgroundColor = new Color(0.12f, 0.12f, 0.12f, 1f); // Studio dark #1f1f1f
 
             var shader = Shader.Find("Hidden/UIDepthInspector/QuadDiagnostic");
 

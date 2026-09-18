@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.75; }
+    }
+    .amber-stripe {
+      background: repeating-linear-gradient(
+        -45deg,
+        rgba(245, 158, 11, 0.25),
+        rgba(245, 158, 11, 0.25) 8px,
+        rgba(245, 158, 11, 0.85) 8px,
+        rgba(245, 158, 11, 0.85) 16px
+      );
+    }
+  </style>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased p-4">
+  <div class="bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)] rounded-xl p-5 shadow-lg max-w-2xl mx-auto space-y-4">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-[var(--border)] pb-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-6 h-6 rounded-md bg-[#60A0E0] border border-[#80C0FF] flex items-center justify-center font-bold text-white text-xs shadow-sm">
+          M
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-[var(--foreground)] tracking-tight">Milfoy — Inspector State Analysis</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">3D Exploded Viewport & Synchronized Hierarchy</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          ● Live Active
+        </span>
+      </div>
+    </div>
+
+    <!-- What is Working vs Polish Items -->
+    <div class="grid grid-cols-2 gap-3">
+      
+      <!-- Working Highlights -->
+      <div class="bg-[var(--background)]/60 border border-emerald-500/30 rounded-lg p-3 space-y-2">
+        <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          What's Looking Great
+        </div>
+        <ul class="text-[11px] text-[var(--muted-foreground)] space-y-1.5 list-disc pl-4">
+          <li><span class="text-[var(--foreground)] font-medium">3D Viewport:</span> Solid perspective card with exact amber diagnostic stripes.</li>
+          <li><span class="text-[var(--foreground)] font-medium">Inline Warnings:</span> Sub-cards neatly explain <code class="text-amber-300 font-mono">Image sprite is missing (null)</code> right under each element.</li>
+          <li><span class="text-[var(--foreground)] font-medium">Tab Icon:</span> Custom 3D layer icon sits cleanly in the window tab!</li>
+        </ul>
+      </div>
+
+      <!-- Quick Polish Opportunities -->
+      <div class="bg-[var(--background)]/60 border border-amber-500/30 rounded-lg p-3 space-y-2">
+        <div class="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Polish Refinements
+        </div>
+        <ul class="text-[11px] text-[var(--muted-foreground)] space-y-1.5 list-disc pl-4">
+          <li><span class="text-[var(--foreground)] font-medium">Column Header:</span> <code class="text-sky-300">ACTIVE / HITBOX / SOLO</code> labels are wrapping vertically. We can align them horizontally.</li>
+          <li><span class="text-[var(--foreground)] font-medium">Viewport Bottom Void:</span> Give the 3D viewport a darker studio background to look unified.</li>
+          <li><span class="text-[var(--foreground)] font-medium">Action Buttons:</span> Clean up button spacing and hover tints.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Interactive Layer Breakdown Preview -->
+    <div class="border border-[var(--border)] rounded-lg overflow-hidden bg-[var(--background)] text-xs">
+      <div class="bg-[var(--muted)]/40 px-3 py-1.5 flex items-center justify-between border-b border-[var(--border)] font-mono text-[10px] text-[var(--muted-foreground)]">
+        <span>DETECTED STACK (#00–#06)</span>
+        <span>STATUS: 3 INVISIBLE HITBOXES</span>
+      </div>
+      <div class="p-2.5 space-y-1 font-mono text-[11px]">
+        <div class="flex items-center justify-between px-2 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300">
+          <div class="flex items-center gap-2">
+            <span class="text-amber-400 font-bold">#00</span>
+            <span>Game_HUD</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-sans">⚠ INVISIBLE HITBOX</span>
+          </div>
+          <span class="text-[10px] text-[var(--muted-foreground)] font-sans">Blocks Raycasts (null sprite)</span>
+        </div>
+        <div class="flex items-center justify-between px-2 py-1 rounded bg-[var(--card)] text-[var(--muted-foreground)]">
+          <div class="flex items-center gap-2">
+            <span class="text-sky-400 font-bold">#01</span>
+            <span class="text-[var(--foreground)]">Game_Header</span>
+          </div>
+          <span class="text-[10px] text-emerald-400 font-sans">✓ Passive Visual</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Action / Question -->
+    <div class="flex items-center justify-between pt-1">
+      <span class="text-xs text-[var(--muted-foreground)]">Would you like me to align the <b class="text-[var(--foreground)]">ACTIVE / HITBOX / SOLO</b> column header horizontally and add dark studio framing?</span>
+    </div>
+
+  </div>
+</body>
+</html>
