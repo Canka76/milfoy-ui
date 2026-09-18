@@ -14,9 +14,9 @@ namespace UIDepthInspector.Editor.Core
         static readonly List<UIElementEntry> s_DeferredEntries = new();
 
         /// <summary>
-        /// Collect from all loaded scenes.
+        /// Collect from all loaded scenes or optionally scoped to specific root canvases.
         /// </summary>
-        public static List<UIElementEntry> Collect()
+        public static List<UIElementEntry> Collect(IEnumerable<Canvas> specificRoots = null)
         {
             s_Result.Clear();
             s_RootCanvases.Clear();
@@ -24,15 +24,24 @@ namespace UIDepthInspector.Editor.Core
             s_DeferredSubtrees.Clear();
             s_DeferredEntries.Clear();
 
-            // Gather root canvases from all loaded scenes
-            var allCanvases = Object.FindObjectsByType<Canvas>();
-            foreach (var c in allCanvases)
+            if (specificRoots != null)
             {
-                if (c.isRootCanvas)
-                    s_RootCanvases.Add(c);
+                foreach (var c in specificRoots)
+                {
+                    if (c != null && c.isRootCanvas)
+                        s_RootCanvases.Add(c);
+                }
             }
-
-            // Sort by sorting layer value, then sorting order
+            else
+            {
+                // Gather root canvases from all loaded scenes
+                var allCanvases = Object.FindObjectsByType<Canvas>();
+                foreach (var c in allCanvases)
+                {
+                    if (c.isRootCanvas)
+                        s_RootCanvases.Add(c);
+                }
+            }
             s_SortedRoots.Clear();
             foreach (var c in s_RootCanvases)
             {

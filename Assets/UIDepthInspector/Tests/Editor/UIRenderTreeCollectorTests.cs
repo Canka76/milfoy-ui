@@ -62,7 +62,7 @@ namespace UIDepthInspector.Editor.Tests
             var lblGo = CreateGameObject("Label", typeof(RectTransform), typeof(Text));
             lblGo.transform.SetParent(btnGo.transform, false);
 
-            var results = UIRenderTreeCollector.Collect();
+            var results = UIRenderTreeCollector.Collect(new[] { canvas });
 
             Assert.AreEqual(3, results.Count);
             Assert.AreEqual("Background", results[0].Name);
@@ -92,7 +92,7 @@ namespace UIDepthInspector.Editor.Tests
             var imgB = CreateGameObject("ImageB", typeof(RectTransform), typeof(Image));
             imgB.transform.SetParent(canvasBGo.transform, false);
 
-            var results = UIRenderTreeCollector.Collect();
+            var results = UIRenderTreeCollector.Collect(new[] { canvasA, canvasB });
 
             Assert.AreEqual(2, results.Count);
             Assert.AreEqual("ImageB", results[0].Name);
@@ -103,6 +103,7 @@ namespace UIDepthInspector.Editor.Tests
         public void Collect_CanvasGroup_CalculatesCumulativeAlphaAndRaycastBlocking()
         {
             var canvasGo = CreateGameObject("Canvas", typeof(Canvas));
+            var canvas = canvasGo.GetComponent<Canvas>();
 
             var panelGo = CreateGameObject("Panel", typeof(RectTransform), typeof(CanvasGroup));
             panelGo.transform.SetParent(canvasGo.transform, false);
@@ -121,7 +122,7 @@ namespace UIDepthInspector.Editor.Tests
             var img = imgGo.GetComponent<Image>();
             img.color = new Color(1, 1, 1, 1);
 
-            var results = UIRenderTreeCollector.Collect();
+            var results = UIRenderTreeCollector.Collect(new[] { canvas });
 
             Assert.AreEqual(1, results.Count);
             Assert.AreEqual(0.25f, results[0].EffectiveAlpha, 0.001f);
@@ -155,6 +156,7 @@ namespace UIDepthInspector.Editor.Tests
         {
             var canvasGo = new GameObject("Canvas", typeof(Canvas));
             _createdObjects.Add(canvasGo);
+            var canvas = canvasGo.GetComponent<Canvas>();
 
             var imgGo = new GameObject("GhostImage", typeof(RectTransform), typeof(Image));
             _createdObjects.Add(imgGo);
@@ -164,7 +166,7 @@ namespace UIDepthInspector.Editor.Tests
             img.color = new Color(1, 1, 1, 0); // alpha = 0
             img.raycastTarget = true;
 
-            var entries = UIRenderTreeCollector.Collect();
+            var entries = UIRenderTreeCollector.Collect(new[] { canvas });
             UIDiagnosticAnalyzer.Analyze(entries);
 
             Assert.AreEqual(1, entries.Count);
@@ -176,6 +178,7 @@ namespace UIDepthInspector.Editor.Tests
         {
             var canvasGo = new GameObject("Canvas", typeof(Canvas));
             _createdObjects.Add(canvasGo);
+            var canvas = canvasGo.GetComponent<Canvas>();
 
             var imgGo = new GameObject("PassiveImage", typeof(RectTransform), typeof(Image));
             _createdObjects.Add(imgGo);
@@ -185,7 +188,7 @@ namespace UIDepthInspector.Editor.Tests
             img.color = new Color(1, 1, 1, 1);
             img.raycastTarget = false;
 
-            var entries = UIRenderTreeCollector.Collect();
+            var entries = UIRenderTreeCollector.Collect(new[] { canvas });
             UIDiagnosticAnalyzer.Analyze(entries);
 
             Assert.AreEqual(1, entries.Count);
@@ -198,6 +201,7 @@ namespace UIDepthInspector.Editor.Tests
         {
             var canvasGo = new GameObject("Canvas", typeof(Canvas));
             _createdObjects.Add(canvasGo);
+            var canvas = canvasGo.GetComponent<Canvas>();
 
             var maskGo = new GameObject("MaskObject", typeof(RectTransform), typeof(Image), typeof(Mask));
             _createdObjects.Add(maskGo);
@@ -207,7 +211,7 @@ namespace UIDepthInspector.Editor.Tests
             _createdObjects.Add(rectMaskGo);
             rectMaskGo.transform.SetParent(canvasGo.transform, false);
 
-            var entries = UIRenderTreeCollector.Collect();
+            var entries = UIRenderTreeCollector.Collect(new[] { canvas });
             UIDiagnosticAnalyzer.Analyze(entries);
 
             Assert.AreEqual(2, entries.Count);

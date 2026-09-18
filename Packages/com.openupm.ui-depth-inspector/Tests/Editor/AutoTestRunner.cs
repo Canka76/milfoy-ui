@@ -7,14 +7,9 @@ using UIDepthInspector.Editor.Diagnostics;
 
 namespace UIDepthInspector.Editor.Tests
 {
-    [InitializeOnLoad]
     public static class AutoTestRunner
     {
-        static AutoTestRunner()
-        {
-            EditorApplication.delayCall += RunAllUnitTests;
-        }
-
+        [MenuItem("Tools/Run UI Depth Tests")]
         public static void RunAllUnitTests()
         {
             Debug.Log("================ STARTING TDD TEST SUITE ================");
@@ -67,7 +62,7 @@ namespace UIDepthInspector.Editor.Tests
                 var lblGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
                 lblGo.transform.SetParent(btnGo.transform, false);
 
-                var results = UIRenderTreeCollector.Collect();
+                var results = UIRenderTreeCollector.Collect(new[] { canvasGo.GetComponent<Canvas>() });
 
                 if (results.Count != 3) throw new System.Exception($"Expected 3 results, got {results.Count}");
                 if (results[0].Name != "Background" || results[0].GlobalDrawIndex != 0) throw new System.Exception("Background failed draw index check");
@@ -95,8 +90,7 @@ namespace UIDepthInspector.Editor.Tests
                 canvasB.sortingOrder = 0;
                 var imgB = new GameObject("ImageB", typeof(RectTransform), typeof(Image));
                 imgB.transform.SetParent(canvasBGo.transform, false);
-
-                var results = UIRenderTreeCollector.Collect();
+                var results = UIRenderTreeCollector.Collect(new[] { canvasA, canvasB });
 
                 if (results.Count != 2) throw new System.Exception($"Expected 2 results, got {results.Count}");
                 if (results[0].Name != "ImageB") throw new System.Exception($"Expected ImageB first, got {results[0].Name}");
@@ -130,7 +124,7 @@ namespace UIDepthInspector.Editor.Tests
                 var nestedImg = new GameObject("NestedImg", typeof(RectTransform), typeof(Image));
                 nestedImg.transform.SetParent(nestedCanvasGo.transform, false);
 
-                var results = UIRenderTreeCollector.Collect();
+                var results = UIRenderTreeCollector.Collect(new[] { rootCanvas });
 
                 if (results.Count != 2) throw new System.Exception($"Expected 2 results, got {results.Count}");
                 if (results[0].Name != "RootBg") throw new System.Exception($"Expected RootBg first, got {results[0].Name}");
@@ -187,8 +181,7 @@ namespace UIDepthInspector.Editor.Tests
                 imgGo.transform.SetParent(subPanelGo.transform, false);
                 var img = imgGo.GetComponent<Image>();
                 img.color = new Color(1, 1, 1, 1);
-
-                var results = UIRenderTreeCollector.Collect();
+                var results = UIRenderTreeCollector.Collect(new[] { canvasGo.GetComponent<Canvas>() });
 
                 if (results.Count != 1) throw new System.Exception($"Expected 1 result, got {results.Count}");
                 if (Mathf.Abs(results[0].EffectiveAlpha - 0.25f) > 0.001f) throw new System.Exception($"Expected alpha 0.25, got {results[0].EffectiveAlpha}");
@@ -212,7 +205,7 @@ namespace UIDepthInspector.Editor.Tests
                 img.color = new Color(1, 1, 1, 0); // alpha = 0
                 img.raycastTarget = true;
 
-                var entries = UIRenderTreeCollector.Collect();
+                var entries = UIRenderTreeCollector.Collect(new[] { canvasGo.GetComponent<Canvas>() });
                 UIDiagnosticAnalyzer.Analyze(entries);
 
                 if (entries.Count != 1) throw new System.Exception($"Expected 1 entry, got {entries.Count}");
@@ -236,7 +229,7 @@ namespace UIDepthInspector.Editor.Tests
                 img.color = new Color(1, 1, 1, 1);
                 img.raycastTarget = false;
 
-                var entries = UIRenderTreeCollector.Collect();
+                var entries = UIRenderTreeCollector.Collect(new[] { canvasGo.GetComponent<Canvas>() });
                 UIDiagnosticAnalyzer.Analyze(entries);
 
                 if (entries.Count != 1) throw new System.Exception($"Expected 1 entry, got {entries.Count}");
@@ -260,7 +253,7 @@ namespace UIDepthInspector.Editor.Tests
                 var rectMaskGo = new GameObject("RectMaskObject", typeof(RectTransform), typeof(Image), typeof(RectMask2D));
                 rectMaskGo.transform.SetParent(canvasGo.transform, false);
 
-                var entries = UIRenderTreeCollector.Collect();
+                var entries = UIRenderTreeCollector.Collect(new[] { canvasGo.GetComponent<Canvas>() });
                 UIDiagnosticAnalyzer.Analyze(entries);
 
                 if (entries.Count != 2) throw new System.Exception($"Expected 2 entries, got {entries.Count}");

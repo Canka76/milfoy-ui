@@ -269,7 +269,7 @@ namespace UIDepthInspector.Editor
         }
 
         // Keyboard shortcuts
-        [Shortcut("UIDepthInspector/ExitSolo", KeyCode.Escape)]
+        [Shortcut("UIDepthInspector/ExitSolo", KeyCode.BackQuote)]
         static void ExitSoloShortcut()
         {
             var wnd = GetWindow<UIDepthInspectorWindow>();

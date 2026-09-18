@@ -201,7 +201,7 @@ namespace UIDepthInspector.Editor.Viewport
 
         public void OnGUI(Rect rect)
         {
-            if (_previewUtility == null) return;
+            if (_previewUtility == null || rect.width <= 1 || rect.height <= 1) return;
 
             _previewUtility.BeginPreview(rect, GUIStyle.none);
 
