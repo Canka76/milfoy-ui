@@ -211,7 +211,44 @@ namespace UIDepthInspector.Editor.Viewport
             UpdateCamera(previewRect);
             _previewUtility.camera.Render();
 
-            // Draw selection highlight
+            // Draw high-contrast hitbox border rings around active blockers
+            if (_currentEntries != null)
+            {
+                for (int i = 0; i < _previewObjects.Count && i < _currentEntries.Count; i++)
+                {
+                    var entry = _currentEntries[i];
+                    var go = _previewObjects[i];
+                    if (go == null) continue;
+
+                    var mf = go.GetComponent<MeshFilter>();
+                    if (mf == null || mf.sharedMesh == null) continue;
+
+                    bool isGhost = (entry.Flags & DiagnosticFlags.GhostBlocker) != 0;
+                    bool isRaycast = (entry.Flags & DiagnosticFlags.RaycastBlocker) != 0;
+                    bool hasMask = (entry.Flags & (DiagnosticFlags.HasMask | DiagnosticFlags.HasRectMask2D)) != 0;
+
+                    Handles.matrix = go.transform.localToWorldMatrix;
+
+                    if (hasMask)
+                    {
+                        Handles.color = new Color(0.25f, 0.88f, 0.25f, 0.85f); // Bright green for masks
+                        Handles.DrawWireCube(mf.sharedMesh.bounds.center, mf.sharedMesh.bounds.size * 1.02f);
+                    }
+                    else if (isGhost)
+                    {
+                        Handles.color = new Color(1f, 0.78f, 0.2f, 0.95f); // High-contrast amber border
+                        Handles.DrawWireCube(mf.sharedMesh.bounds.center, mf.sharedMesh.bounds.size * 1.01f);
+                    }
+                    else if (isRaycast)
+                    {
+                        Handles.color = new Color(1f, 0.42f, 0.42f, 0.6f); // Soft coral border for active touch targets
+                        Handles.DrawWireCube(mf.sharedMesh.bounds.center, mf.sharedMesh.bounds.size * 1.005f);
+                    }
+                }
+                Handles.matrix = Matrix4x4.identity;
+            }
+
+            // Draw selection highlight with glowing yellow volume cage
             if (_highlightIndex >= 0 && _highlightIndex < _previewObjects.Count)
             {
                 var go = _previewObjects[_highlightIndex];
@@ -222,29 +259,6 @@ namespace UIDepthInspector.Editor.Viewport
                         DrawWireframeCage(go.transform, mf.sharedMesh.bounds);
                 }
             }
-
-            // Draw mask bounds wireframes
-            if (_currentEntries != null)
-            {
-                Handles.color = new Color(0.25f, 0.88f, 0.25f, 0.8f); // green
-                for (int i = 0; i < _previewObjects.Count && i < _currentEntries.Count; i++)
-                {
-                    var entry = _currentEntries[i];
-                    bool hasMask = (entry.Flags & (DiagnosticFlags.HasMask | DiagnosticFlags.HasRectMask2D)) != 0;
-                    if (!hasMask) continue;
-
-                    var go = _previewObjects[i];
-                    if (go == null) continue;
-
-                    var mf = go.GetComponent<MeshFilter>();
-                    if (mf == null || mf.sharedMesh == null) continue;
-
-                    Handles.matrix = go.transform.localToWorldMatrix;
-                    Handles.DrawWireCube(mf.sharedMesh.bounds.center, mf.sharedMesh.bounds.size * 1.01f);
-                }
-                Handles.matrix = Matrix4x4.identity;
-            }
-
             var result = _previewUtility.EndPreview();
             if (result != null)
             {
