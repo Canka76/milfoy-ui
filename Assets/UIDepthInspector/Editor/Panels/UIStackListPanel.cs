@@ -158,7 +158,7 @@ namespace UIDepthInspector.Editor.Panels
             actions.style.flexShrink = 0;
             actions.style.marginLeft = StyleKeyword.Auto;
 
-            var eyeBtn = new Button { name = "eye", text = "👁" };
+            var eyeBtn = new Button { name = "eye", text = "👁", tooltip = "Toggle GameObject Active state (Undo supported)" };
             eyeBtn.AddToClassList("row-btn");
             eyeBtn.style.width = 22;
             eyeBtn.style.height = 22;
@@ -172,7 +172,7 @@ namespace UIDepthInspector.Editor.Panels
             eyeBtn.style.paddingBottom = 0;
             actions.Add(eyeBtn);
 
-            var rayBtn = new Button { name = "ray", text = "◎" };
+            var rayBtn = new Button { name = "ray", text = "◎", tooltip = "Toggle Graphic.raycastTarget (Turn OFF to stop blocking clicks on objects below)" };
             rayBtn.AddToClassList("row-btn");
             rayBtn.style.width = 22;
             rayBtn.style.height = 22;
@@ -186,7 +186,7 @@ namespace UIDepthInspector.Editor.Panels
             rayBtn.style.paddingBottom = 0;
             actions.Add(rayBtn);
 
-            var soloBtn = new Button { name = "solo", text = "S" };
+            var soloBtn = new Button { name = "solo", text = "S", tooltip = "Solo Isolate (Hide siblings under this Canvas to inspect alone. Press ~ or Escape to restore)" };
             soloBtn.AddToClassList("row-btn");
             soloBtn.style.width = 22;
             soloBtn.style.height = 22;

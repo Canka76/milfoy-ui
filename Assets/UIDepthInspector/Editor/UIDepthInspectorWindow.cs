@@ -258,10 +258,34 @@ namespace UIDepthInspector.Editor
         void UpdateStatusBar(List<UIElementEntry> entries)
         {
             int warnings = 0;
+            var logBuilder = new System.Text.StringBuilder();
+
             foreach (var e in entries)
             {
                 if ((e.Flags & DiagnosticFlags.GhostBlocker) != 0)
+                {
                     warnings++;
+                    string reason = (e.EffectiveAlpha <= 0f)
+                        ? "Alpha is 0 (fully transparent) while Raycast Target is active."
+                        : "Image sprite is missing (null) while Raycast Target is active.";
+                    logBuilder.AppendLine($"⚠ [#{e.GlobalDrawIndex:D2} {e.Name}]: {reason}");
+                }
+                else if ((e.Flags & DiagnosticFlags.ZeroSize) != 0)
+                {
+                    logBuilder.AppendLine($"ℹ [#{e.GlobalDrawIndex:D2} {e.Name}]: RectTransform width/height is near zero.");
+                }
+            }
+
+            if (warnings == 0 && logBuilder.Length == 0)
+            {
+                logBuilder.Append("✓ All UI layers healthy. No invisible blockers or occlusions detected.");
+            }
+
+            var logText = rootVisualElement.Q<Label>("log-text");
+            if (logText != null)
+            {
+                logText.text = logBuilder.ToString().TrimEnd();
+                logText.style.color = (warnings > 0) ? new Color(1f, 0.75f, 0.25f, 1f) : new Color(0.6f, 0.85f, 0.6f, 1f);
             }
 
             var statusBar = rootVisualElement.Q<Label>("status-bar");
