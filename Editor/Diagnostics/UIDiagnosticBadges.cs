@@ -10,17 +10,16 @@ namespace UIDepthInspector.Editor.Diagnostics
         {
             var dot = new VisualElement();
             dot.AddToClassList("stack-dot");
-
-            if ((flags & DiagnosticFlags.Inactive) != 0)
-                dot.AddToClassList("stack-dot--inactive");
-            else if ((flags & DiagnosticFlags.GhostBlocker) != 0)
-                dot.AddToClassList("stack-dot--ghost");
-            else if ((flags & DiagnosticFlags.RaycastBlocker) != 0)
-                dot.AddToClassList("stack-dot--raycast");
-            else
-                dot.AddToClassList("stack-dot--passive");
-
+            UpdateDot(dot, flags);
             return dot;
+        }
+
+        public static void UpdateDot(VisualElement dot, DiagnosticFlags flags)
+        {
+            dot.EnableInClassList("stack-dot--inactive", (flags & DiagnosticFlags.Inactive) != 0);
+            dot.EnableInClassList("stack-dot--ghost", (flags & DiagnosticFlags.Inactive) == 0 && (flags & DiagnosticFlags.GhostBlocker) != 0);
+            dot.EnableInClassList("stack-dot--raycast", (flags & DiagnosticFlags.Inactive) == 0 && (flags & DiagnosticFlags.GhostBlocker) == 0 && (flags & DiagnosticFlags.RaycastBlocker) != 0);
+            dot.EnableInClassList("stack-dot--passive", (flags & DiagnosticFlags.Inactive) == 0 && (flags & DiagnosticFlags.GhostBlocker) == 0 && (flags & DiagnosticFlags.RaycastBlocker) == 0);
         }
 
         public static Label CreateWarningBadge()

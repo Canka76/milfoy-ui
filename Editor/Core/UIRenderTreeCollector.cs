@@ -11,6 +11,7 @@ namespace UIDepthInspector.Editor.Core
         static readonly List<UIElementEntry> s_Result = new();
         static readonly List<(int sortKey, int sortOrder, Canvas canvas)> s_SortedRoots = new();
         static readonly List<(int sortKey, int sortOrder, Transform root, int insertIndex)> s_DeferredSubtrees = new();
+        static readonly List<UIElementEntry> s_DeferredEntries = new();
 
         /// <summary>
         /// Collect from all loaded scenes.
@@ -21,6 +22,7 @@ namespace UIDepthInspector.Editor.Core
             s_RootCanvases.Clear();
             s_SortedRoots.Clear();
             s_DeferredSubtrees.Clear();
+            s_DeferredEntries.Clear();
 
             // Gather root canvases from all loaded scenes
             var allCanvases = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
@@ -60,8 +62,8 @@ namespace UIDepthInspector.Editor.Core
                     return cmp != 0 ? cmp : a.sortOrder.CompareTo(b.sortOrder);
                 });
 
-                // Collect deferred entries into a temp list, then merge
-                var deferredEntries = new List<UIElementEntry>();
+                // Collect deferred entries into a reusable list, then merge
+                s_DeferredEntries.Clear();
                 foreach (var (_, _, root, _) in s_DeferredSubtrees)
                 {
                     var nestedCanvas = root.GetComponent<Canvas>();
@@ -75,14 +77,13 @@ namespace UIDepthInspector.Editor.Core
 
                     // Move newly added entries to deferred list
                     for (int i = countBefore; i < s_Result.Count; i++)
-                        deferredEntries.Add(s_Result[i]);
+                        s_DeferredEntries.Add(s_Result[i]);
                     s_Result.RemoveRange(countBefore, s_Result.Count - countBefore);
-
                     globalIndex = tempIndex;
                 }
 
                 // Append deferred entries (already in sort order)
-                s_Result.AddRange(deferredEntries);
+                s_Result.AddRange(s_DeferredEntries);
             }
 
             // Re-index all entries with final global draw order

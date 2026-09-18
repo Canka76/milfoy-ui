@@ -120,12 +120,10 @@ namespace UIDepthInspector.Editor.Panels
             indexLabel.AddToClassList("stack-index");
             indexLabel.text = $"#{entry.GlobalDrawIndex:D2}";
 
-            // Replace dot
-            var oldDot = row.Q("dot");
-            var newDot = UIDiagnosticBadges.CreateDot(entry.Flags);
-            newDot.name = "dot";
-            row.Insert(row.IndexOf(oldDot), newDot);
-            oldDot.RemoveFromHierarchy();
+            // Update dot in-place
+            var dot = row.Q("dot");
+            if (dot != null)
+                UIDiagnosticBadges.UpdateDot(dot, entry.Flags);
 
             var nameLabel = row.Q<Label>("name");
             nameLabel.AddToClassList("stack-name");
