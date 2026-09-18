@@ -24,6 +24,8 @@ Establish lightweight, enforceable contribution rules for the open-source UPM pa
 | Commit convention | Conventional Commits | Industry standard; enables automated changelog and semver bumping via release-please. |
 | Enforcement | Light CI — commitlint on GitHub Actions | Catches bad commits at PR time without Unity licensing overhead. |
 | Changelog | Automated via `release-please` | Zero manual changelog work; version bump + GitHub Release tag created automatically on merge to `main`. |
+| Distribution | OpenUPM registry + Git URL | OpenUPM watches GitHub release tags (already created by release-please) — zero extra CI step. Discoverability vs. Git-URL-only is the difference between 10 users and 10,000. |
+| Package namespace | `com.<yourgithuborg>.ui-depth-inspector` | `com.openupm` is OpenUPM's own domain; using it as a package namespace causes confusion and potential conflicts. Resolve to a clean reverse-domain before first publish. |
 | Unity compilation gate | Deferred | Over-engineered for solo maintainer; add when a self-hosted runner or second regular contributor exists. |
 | Community governance (CoC, issue templates, CODEOWNERS) | Deferred | Add incrementally when community grows. |
 
@@ -32,10 +34,10 @@ Establish lightweight, enforceable contribution rules for the open-source UPM pa
 ## 3. Repository File Layout
 
 ```
-com.openupm.ui-depth-inspector/   (repo root)
+com.<yourgithuborg>.ui-depth-inspector/   (repo root)
 ├── .editorconfig
 ├── .gitattributes
-├── .gitignore                     # Unity + OS + IDE artifacts
+├── .gitignore                     # Unity + OS + IDE artifacts (see Section 6)
 ├── .github/
 │   ├── workflows/
 │   │   ├── commitlint.yml         # PR commit validation
@@ -45,7 +47,7 @@ com.openupm.ui-depth-inspector/   (repo root)
 ├── CONTRIBUTING.md
 ├── LICENSE.md                     # MIT
 ├── README.md
-├── package.json                   # UPM manifest (version bumped by release-please)
+├── package.json                   # UPM manifest — full field spec in Section 6
 ├── release-please-config.json     # release-please: release-type + extra-files
 ├── .release-please-manifest.json  # release-please: current tracked version
 └── Editor/
@@ -271,6 +273,149 @@ release-please inserts versioned release sections above this comment on each rel
 
 ---
 
-## 8. Open Questions
+## 8. Branch Protection Rules (GitHub Repository Setting)
 
-None. All governance decisions resolved.
+The commitlint CI check only blocks merges if branch protection is configured. Without this, a failing check is advisory only — anyone can merge regardless.
+
+**Required configuration:** GitHub repo → Settings → Branches → Add rule for `main`:
+
+| Setting | Value |
+|---------|-------|
+| Require status checks before merging | ✅ Enabled |
+| Required status check name | `commitlint` (matches the workflow job name) |
+| Require branches to be up to date before merging | ✅ Enabled |
+| Do not allow bypassing the above settings | ✅ Enabled (applies to admins too) |
+| Restrict who can push to matching branches | Optional — recommended: maintainer only |
+
+This is a one-time manual step in the GitHub UI; it cannot be committed to the repo. It must be applied before accepting the first PR.
+
+---
+
+## 9. `.gitignore` Content
+
+```gitignore
+# Unity project artifacts (test project alongside the package)
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# IDE
+.idea/
+.vs/
+*.csproj
+*.sln
+*.user
+*.suo
+*.userprefs
+
+# OS
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+
+# Node (if commitlint run locally by a contributor)
+node_modules/
+commitlint.config.js
+package-lock.json
+```
+
+The package's `Editor/` folder, `package.json`, and all `.meta` files are **not** ignored — they are the deliverable. `.meta` files must be committed for UPM packages; omitting them breaks asset GUIDs for consumers.
+
+---
+
+## 10. `package.json` — Full UPM Manifest
+
+All fields required or strongly recommended by the UPM specification:
+
+```json
+{
+  "name": "com.<yourgithuborg>.ui-depth-inspector",
+  "version": "0.1.0",
+  "displayName": "UI Layer & 3D Depth Inspector",
+  "description": "Interactive 3D exploded viewport for debugging uGUI Canvas draw order, raycast blockers, and mask boundaries directly inside the Unity Editor.",
+  "unity": "6000.0",
+  "unityRelease": "0f1",
+  "documentationUrl": "https://github.com/<org>/ui-depth-inspector#readme",
+  "changelogUrl": "https://github.com/<org>/ui-depth-inspector/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/<org>/ui-depth-inspector/blob/main/LICENSE.md",
+  "keywords": [
+    "ui",
+    "ugui",
+    "canvas",
+    "debug",
+    "inspector",
+    "depth",
+    "editor",
+    "raycast",
+    "3d"
+  ],
+  "author": {
+    "name": "<Your Name or Org>",
+    "url": "https://github.com/<org>"
+  },
+  "dependencies": {
+    "com.unity.ugui": "2.0.0"
+  }
+}
+```
+
+**Field notes:**
+- `unity` + `unityRelease`: UPM uses these to block installation on incompatible Unity versions. Correct values prevent support issues.
+- `changelogUrl` + `licensesUrl`: rendered as clickable links in the Package Manager window.
+- `keywords`: surface the package in `Window → Package Manager → Search` and on openupm.com. Keep to the most relevant terms; UPM truncates long lists.
+- `dependencies`: only `com.unity.ugui`. No version wildcard — pin to the version this was built and tested against.
+- `version`: do not manually edit. release-please owns this field.
+
+---
+
+## 11. OpenUPM Registration
+
+OpenUPM watches GitHub release tags (created by release-please) and automatically mirrors them to its registry. No CI changes, no credentials, no publish step — registration is a one-time PR to the OpenUPM packages repo.
+
+**Registration steps (performed once before or alongside v1.0.0 release):**
+
+1. Fork `openupm/openupm` on GitHub.
+2. Add a YAML file at `data/packages/com.<yourgithuborg>.ui-depth-inspector.yml`:
+   ```yaml
+   name: com.<yourgithuborg>.ui-depth-inspector
+   displayName: UI Layer & 3D Depth Inspector
+   description: Interactive 3D exploded viewport for debugging uGUI Canvas draw order, raycast blockers, and mask boundaries.
+   repoUrl: https://github.com/<org>/ui-depth-inspector
+   licenseSpdxId: MIT
+   topics:
+     - ui
+     - ugui
+     - canvas
+     - debug
+     - editor
+   hunter: <your-github-username>
+   ```
+3. Open a PR. The OpenUPM bot validates the YAML and confirms the package is valid. Merge is typically within 24–48 hours.
+4. After merge, OpenUPM's CI picks up existing and future GitHub release tags automatically.
+
+**Post-registration install (what users do — one-time per project):**
+```json
+// manifest.json — add scoped registry once
+{
+  "scopedRegistries": [{
+    "name": "OpenUPM",
+    "url": "https://package.openupm.com",
+    "scopes": ["com.<yourgithuborg>"]
+  }],
+  "dependencies": {
+    "com.<yourgithuborg>.ui-depth-inspector": "1.0.0"
+  }
+}
+```
+Or via CLI: `openupm add com.<yourgithuborg>.ui-depth-inspector`
+
+---
+
+## 12. Open Questions
+
+None. All governance decisions resolved. `<yourgithuborg>` placeholders must be replaced with the actual GitHub organization/username before the implementation plan is executed.
