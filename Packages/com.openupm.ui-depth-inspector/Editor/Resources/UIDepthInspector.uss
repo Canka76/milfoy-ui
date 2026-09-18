@@ -1,15 +1,9 @@
-.root {
-    flex-grow: 1;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
-}
-
 .split-view {
     flex-grow: 1;
-    flex-shrink: 0;
+    flex-shrink: 1;
     height: 100%;
     width: 100%;
+    min-height: 100px;
 }
 
 .toolbar {
@@ -85,8 +79,8 @@
 
 .stack-list {
     flex-grow: 1;
-    flex-shrink: 0;
-    min-height: 100px;
+    flex-shrink: 1;
+    min-height: 60px;
 }
 
 .list-footer {

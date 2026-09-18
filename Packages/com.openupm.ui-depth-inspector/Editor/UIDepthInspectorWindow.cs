@@ -53,17 +53,11 @@ namespace UIDepthInspector.Editor
             // Clear prior children on domain reload to prevent orphaned duplicated visual trees
             rootVisualElement.Clear();
 
-            // Load UXML & USS reliably in Editor
+            // Load UXML & USS reliably in Editor directly into rootVisualElement
             var visualTree = LoadEditorAsset<VisualTreeAsset>("UIDepthInspector", "uxml");
-            VisualElement templateRoot = null;
             if (visualTree != null)
             {
-                templateRoot = visualTree.Instantiate();
-                templateRoot.style.flexGrow = 1;
-                templateRoot.style.flexDirection = FlexDirection.Column;
-                templateRoot.style.height = Length.Percent(100);
-                templateRoot.style.width = Length.Percent(100);
-                rootVisualElement.Add(templateRoot);
+                visualTree.CloneTree(rootVisualElement);
             }
 
             var stylesheet = LoadEditorAsset<StyleSheet>("UIDepthInspector", "uss");
@@ -74,10 +68,10 @@ namespace UIDepthInspector.Editor
             if (splitView != null)
             {
                 splitView.style.flexGrow = 1;
-                splitView.style.flexShrink = 0;
+                splitView.style.flexShrink = 1;
                 splitView.style.height = Length.Percent(100);
+                splitView.style.minHeight = 100;
             }
-
             var listPane = rootVisualElement.Q("list-pane");
             if (listPane != null)
             {
