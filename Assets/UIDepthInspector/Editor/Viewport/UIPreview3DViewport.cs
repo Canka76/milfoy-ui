@@ -22,9 +22,21 @@ namespace UIDepthInspector.Editor.Viewport
         int _highlightIndex = -1;
         readonly List<GameObject> _previewObjects = new();
         readonly List<Collider> _colliders = new();
+
+        Material _matRaycast;
+        Material _matPassive;
+        Material _matInactive;
+        Material _matGhost;
+
+        // Camera orbit state
+        Vector2 _orbitAngles = new(20f, -30f);
+        Vector3 _pivotOffset = Vector3.zero;
+        float _zoomDistance = 10f;
+        bool _orthographic;
+
+        // Cached data
         List<UIElementEntry> _currentEntries;
         Rect _normalizationRect;
-
         public void Initialize()
         {
             _previewUtility = new PreviewRenderUtility();
