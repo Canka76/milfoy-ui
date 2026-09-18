@@ -45,7 +45,11 @@ namespace UIDepthInspector.Editor
             _viewport = new UIPreview3DViewport();
             _viewport.Initialize();
 
-            // Load UXML & USS reliably in Editor (supporting both Assets/ and Packages/ locations)
+            rootVisualElement.style.flexGrow = 1;
+            rootVisualElement.style.height = Length.Percent(100);
+            rootVisualElement.style.width = Length.Percent(100);
+
+            // Load UXML & USS reliably in Editor
             var visualTree = LoadEditorAsset<VisualTreeAsset>("UIDepthInspector", "uxml");
             if (visualTree != null)
                 visualTree.CloneTree(rootVisualElement);
@@ -54,6 +58,27 @@ namespace UIDepthInspector.Editor
             if (stylesheet != null)
                 rootVisualElement.styleSheets.Add(stylesheet);
 
+            var splitView = rootVisualElement.Q<TwoPaneSplitView>("split-view");
+            if (splitView != null)
+            {
+                splitView.style.flexGrow = 1;
+                splitView.style.height = Length.Percent(100);
+            }
+
+            var listPane = rootVisualElement.Q("list-pane");
+            if (listPane != null)
+            {
+                listPane.style.flexDirection = FlexDirection.Column;
+                listPane.style.minWidth = 340;
+                listPane.style.flexGrow = 1;
+            }
+
+            var viewportContainerElem = rootVisualElement.Q("viewport-container");
+            if (viewportContainerElem != null)
+            {
+                viewportContainerElem.style.flexGrow = 1;
+                viewportContainerElem.style.minWidth = 200;
+            }
             // Setup toolbar
             _toolbar = new UIToolbarPanel();
             _toolbar.Bind(rootVisualElement);

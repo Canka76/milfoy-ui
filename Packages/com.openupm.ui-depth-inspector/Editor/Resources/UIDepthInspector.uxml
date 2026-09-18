@@ -3,7 +3,7 @@
     <ui:VisualElement name="root" class="root">
         <!-- Toolbar -->
         <ui:VisualElement name="toolbar" class="toolbar">
-            <ui:VisualElement class="toolbar-row">
+            <ui:VisualElement name="toolbar-row-presets" class="toolbar-row">
                 <ui:Button name="btn-front" text="Front" class="preset-btn" />
                 <ui:Button name="btn-iso" text="Iso" class="preset-btn" />
                 <ui:Button name="btn-side" text="Side" class="preset-btn" />
@@ -12,7 +12,7 @@
                 <ui:Slider name="slider-explosion" low-value="0" high-value="50" value="0" class="explosion-slider" />
                 <ui:FloatField name="field-explosion" value="0" class="explosion-field" />
             </ui:VisualElement>
-            <ui:VisualElement class="toolbar-row">
+            <ui:VisualElement name="toolbar-row-filters" class="toolbar-row">
                 <ui:TextField name="search-field" class="search-field" />
                 <ui:Toggle name="toggle-raycast" text="Raycast Only" class="filter-toggle" />
                 <ui:Toggle name="toggle-warnings" text="Warnings" class="filter-toggle" />

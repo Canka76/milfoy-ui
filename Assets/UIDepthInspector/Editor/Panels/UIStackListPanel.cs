@@ -90,25 +90,114 @@ namespace UIDepthInspector.Editor.Panels
         {
             var row = new VisualElement();
             row.AddToClassList("stack-row");
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.alignItems = Align.Center;
+            row.style.height = 26;
+            row.style.paddingLeft = 4;
+            row.style.paddingRight = 4;
+            row.style.overflow = Overflow.Hidden;
 
-            row.Add(new Label { name = "index", pickingMode = PickingMode.Ignore });
-            row.Add(new VisualElement { name = "dot" });
-            row.Add(new Label { name = "name", pickingMode = PickingMode.Ignore });
-            row.Add(new Label { name = "warning", pickingMode = PickingMode.Ignore });
+            var indexLbl = new Label { name = "index", pickingMode = PickingMode.Ignore };
+            indexLbl.AddToClassList("stack-index");
+            indexLbl.style.width = 30;
+            indexLbl.style.minWidth = 30;
+            indexLbl.style.flexShrink = 0;
+            indexLbl.style.unityTextAlign = TextAnchor.MiddleRight;
+            indexLbl.style.marginRight = 6;
+            indexLbl.style.fontSize = 10;
+            indexLbl.style.unityFontStyleAndWeight = FontStyle.Bold;
+            indexLbl.style.color = new Color(0.6f, 0.6f, 0.6f, 1f);
+            row.Add(indexLbl);
+
+            var dot = new VisualElement { name = "dot" };
+            dot.AddToClassList("stack-dot");
+            dot.style.width = 10;
+            dot.style.height = 10;
+            dot.style.minWidth = 10;
+            dot.style.minHeight = 10;
+            dot.style.flexShrink = 0;
+            dot.style.borderTopLeftRadius = 5;
+            dot.style.borderTopRightRadius = 5;
+            dot.style.borderBottomLeftRadius = 5;
+            dot.style.borderBottomRightRadius = 5;
+            dot.style.marginRight = 6;
+            row.Add(dot);
+
+            var nameLbl = new Label { name = "name", pickingMode = PickingMode.Ignore };
+            nameLbl.AddToClassList("stack-name");
+            nameLbl.style.flexGrow = 1;
+            nameLbl.style.flexShrink = 1;
+            nameLbl.style.overflow = Overflow.Hidden;
+            nameLbl.style.unityTextAlign = TextAnchor.MiddleLeft;
+            nameLbl.style.fontSize = 12;
+            nameLbl.style.marginRight = 4;
+            row.Add(nameLbl);
+
+            var warningLbl = new Label { name = "warning", pickingMode = PickingMode.Ignore };
+            warningLbl.AddToClassList("warning-badge");
+            warningLbl.style.flexShrink = 0;
+            warningLbl.style.fontSize = 10;
+            warningLbl.style.color = new Color(1f, 0.72f, 0.2f, 1f);
+            warningLbl.style.backgroundColor = new Color(1f, 0.72f, 0.2f, 0.15f);
+            warningLbl.style.borderTopLeftRadius = 3;
+            warningLbl.style.borderTopRightRadius = 3;
+            warningLbl.style.borderBottomLeftRadius = 3;
+            warningLbl.style.borderBottomRightRadius = 3;
+            warningLbl.style.paddingLeft = 4;
+            warningLbl.style.paddingRight = 4;
+            warningLbl.style.paddingTop = 1;
+            warningLbl.style.paddingBottom = 1;
+            warningLbl.style.marginRight = 6;
+            warningLbl.style.unityFontStyleAndWeight = FontStyle.Bold;
+            row.Add(warningLbl);
 
             var actions = new VisualElement { name = "actions" };
             actions.AddToClassList("row-actions");
+            actions.style.flexDirection = FlexDirection.Row;
+            actions.style.alignItems = Align.Center;
+            actions.style.flexShrink = 0;
+            actions.style.marginLeft = StyleKeyword.Auto;
 
             var eyeBtn = new Button { name = "eye", text = "👁" };
             eyeBtn.AddToClassList("row-btn");
+            eyeBtn.style.width = 22;
+            eyeBtn.style.height = 22;
+            eyeBtn.style.minWidth = 22;
+            eyeBtn.style.minHeight = 22;
+            eyeBtn.style.flexShrink = 0;
+            eyeBtn.style.marginLeft = 2;
+            eyeBtn.style.paddingLeft = 0;
+            eyeBtn.style.paddingRight = 0;
+            eyeBtn.style.paddingTop = 0;
+            eyeBtn.style.paddingBottom = 0;
             actions.Add(eyeBtn);
 
             var rayBtn = new Button { name = "ray", text = "◎" };
             rayBtn.AddToClassList("row-btn");
+            rayBtn.style.width = 22;
+            rayBtn.style.height = 22;
+            rayBtn.style.minWidth = 22;
+            rayBtn.style.minHeight = 22;
+            rayBtn.style.flexShrink = 0;
+            rayBtn.style.marginLeft = 2;
+            rayBtn.style.paddingLeft = 0;
+            rayBtn.style.paddingRight = 0;
+            rayBtn.style.paddingTop = 0;
+            rayBtn.style.paddingBottom = 0;
             actions.Add(rayBtn);
 
             var soloBtn = new Button { name = "solo", text = "S" };
             soloBtn.AddToClassList("row-btn");
+            soloBtn.style.width = 22;
+            soloBtn.style.height = 22;
+            soloBtn.style.minWidth = 22;
+            soloBtn.style.minHeight = 22;
+            soloBtn.style.flexShrink = 0;
+            soloBtn.style.marginLeft = 2;
+            soloBtn.style.paddingLeft = 0;
+            soloBtn.style.paddingRight = 0;
+            soloBtn.style.paddingTop = 0;
+            soloBtn.style.paddingBottom = 0;
             actions.Add(soloBtn);
 
             row.Add(actions);

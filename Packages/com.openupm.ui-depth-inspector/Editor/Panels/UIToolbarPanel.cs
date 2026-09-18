@@ -27,12 +27,77 @@ namespace UIDepthInspector.Editor.Panels
 
         public void Bind(VisualElement root)
         {
-            root.Q<Button>("btn-front").clicked += () => OnViewPresetChanged?.Invoke(ViewPreset.Front);
-            root.Q<Button>("btn-iso").clicked += () => OnViewPresetChanged?.Invoke(ViewPreset.Isometric);
-            root.Q<Button>("btn-side").clicked += () => OnViewPresetChanged?.Invoke(ViewPreset.Side);
+            var toolbar = root.Q("toolbar");
+            if (toolbar != null)
+            {
+                toolbar.style.paddingLeft = 4;
+                toolbar.style.paddingRight = 4;
+                toolbar.style.paddingTop = 4;
+                toolbar.style.paddingBottom = 4;
+                toolbar.style.backgroundColor = new Color(0.22f, 0.22f, 0.22f, 1f);
+                toolbar.style.borderBottomWidth = 1;
+                toolbar.style.borderBottomColor = new Color(0.13f, 0.13f, 0.13f, 1f);
+            }
+
+            var row1 = root.Q("toolbar-row-presets");
+            if (row1 != null)
+            {
+                row1.style.flexDirection = FlexDirection.Row;
+                row1.style.alignItems = Align.Center;
+                row1.style.marginBottom = 3;
+            }
+
+            var row2 = root.Q("toolbar-row-filters");
+            if (row2 != null)
+            {
+                row2.style.flexDirection = FlexDirection.Row;
+                row2.style.alignItems = Align.Center;
+            }
+
+            var btnFront = root.Q<Button>("btn-front");
+            if (btnFront != null)
+            {
+                btnFront.style.width = 50;
+                btnFront.style.marginRight = 2;
+                btnFront.clicked += () => OnViewPresetChanged?.Invoke(ViewPreset.Front);
+            }
+
+            var btnIso = root.Q<Button>("btn-iso");
+            if (btnIso != null)
+            {
+                btnIso.style.width = 50;
+                btnIso.style.marginRight = 2;
+                btnIso.clicked += () => OnViewPresetChanged?.Invoke(ViewPreset.Isometric);
+            }
+
+            var btnSide = root.Q<Button>("btn-side");
+            if (btnSide != null)
+            {
+                btnSide.style.width = 50;
+                btnSide.style.marginRight = 4;
+                btnSide.clicked += () => OnViewPresetChanged?.Invoke(ViewPreset.Side);
+            }
 
             _slider = root.Q<Slider>("slider-explosion");
+            if (_slider != null)
+            {
+                _slider.style.flexGrow = 1;
+                _slider.style.minWidth = 100;
+            }
+
             _floatField = root.Q<FloatField>("field-explosion");
+            if (_floatField != null)
+            {
+                _floatField.style.width = 50;
+                _floatField.style.marginLeft = 4;
+            }
+
+            var search = root.Q<TextField>("search-field");
+            if (search != null)
+            {
+                search.style.flexGrow = 1;
+                search.style.marginRight = 6;
+            }
 
             _slider.RegisterValueChangedCallback(evt =>
             {
