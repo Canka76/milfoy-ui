@@ -357,7 +357,7 @@ namespace UIDepthInspector.Editor.Viewport
         {
             float normX = (entry.WorldRect.center.x - _normalizationRect.x) / _normalizationRect.width * 8f - 4f;
             float normY = (entry.WorldRect.center.y - _normalizationRect.y) / _normalizationRect.height * 8f - 4f;
-            float z = totalCount > 0 ? index * (_explosionFactor / Mathf.Max(totalCount, 1)) : 0f;
+            float z = totalCount > 0 ? -index * (_explosionFactor / Mathf.Max(totalCount, 1)) : 0f;
 
             t.localPosition = new Vector3(normX, normY, z);
 

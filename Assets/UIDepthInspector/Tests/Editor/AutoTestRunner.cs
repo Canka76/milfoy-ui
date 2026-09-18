@@ -4,12 +4,14 @@ using UnityEngine;
 using UnityEngine.UI;
 using UIDepthInspector.Editor.Core;
 using UIDepthInspector.Editor.Diagnostics;
-
+using UIDepthInspector.Editor.Viewport;
 namespace UIDepthInspector.Editor.Tests
 {
     public static class AutoTestRunner
     {
         [MenuItem("Tools/Run UI Depth Tests")]
+        public static void RunAllTests() => RunAllUnitTests();
+
         public static void RunAllUnitTests()
         {
             Debug.Log("================ STARTING TDD TEST SUITE ================");
@@ -26,6 +28,7 @@ namespace UIDepthInspector.Editor.Tests
             RunTest("Analyze_MaskAndRectMask2D_SetsCorrespondingMaskFlags", Test_MaskFlags, ref passed, ref failed);
             RunTest("CustomColorRegistry_Persistence", Test_CustomColorRegistry_Persistence, ref passed, ref failed);
             RunTest("UIElementEntry_CustomColor", Test_UIElementEntry_CustomColor, ref passed, ref failed);
+            RunTest("Viewport_HigherDrawIndex_IsPlacedCloserToCameraAlongNegativeZ", Test_ViewportDepthPlacement, ref passed, ref failed);
             Debug.Log($"================ TEST SUMMARY: {passed} PASSED, {failed} FAILED ================");
 
             if (Application.isBatchMode)
@@ -359,6 +362,38 @@ namespace UIDepthInspector.Editor.Tests
             {
                 UICustomColorRegistry.ClearAll();
                 Object.DestroyImmediate(canvasGo);
+            }
+        }
+
+        static void Test_ViewportDepthPlacement()
+        {
+            var viewport = new UIPreview3DViewport();
+            try
+            {
+                viewport.Initialize();
+                viewport.SetExplosionFactor(5f);
+
+                var entry0 = new UIElementEntry { GlobalDrawIndex = 0, WorldRect = new Rect(0, 0, 100, 100) };
+                var entry1 = new UIElementEntry { GlobalDrawIndex = 1, WorldRect = new Rect(0, 0, 100, 100) };
+
+                var entries = new List<UIElementEntry> { entry0, entry1 };
+                viewport.RebuildFromEntries(entries);
+
+                var field = typeof(UIPreview3DViewport).GetField("_previewObjects", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var previewObjects = (List<GameObject>)field.GetValue(viewport);
+
+                if (previewObjects == null || previewObjects.Count != 2)
+                    throw new System.Exception($"Expected 2 preview objects, got {previewObjects?.Count ?? 0}");
+
+                float z0 = previewObjects[0].transform.localPosition.z;
+                float z1 = previewObjects[1].transform.localPosition.z;
+
+                if (z1 >= z0)
+                    throw new System.Exception($"Expected z1 ({z1}) < z0 ({z0}) for negative Z stack direction");
+            }
+            finally
+            {
+                viewport.Dispose();
             }
         }
     }
