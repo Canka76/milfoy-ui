@@ -76,9 +76,52 @@ namespace UIDepthInspector.Editor
             var viewportContainerElem = rootVisualElement.Q("viewport-container");
             if (viewportContainerElem != null)
             {
-                viewportContainerElem.style.flexGrow = 1;
                 viewportContainerElem.style.minWidth = 200;
             }
+
+            var header = rootVisualElement.Q("window-header");
+            if (header != null)
+            {
+                header.style.flexDirection = FlexDirection.Row;
+                header.style.alignItems = Align.Center;
+                header.style.paddingLeft = 8;
+                header.style.paddingRight = 8;
+                header.style.paddingTop = 6;
+                header.style.paddingBottom = 6;
+                header.style.backgroundColor = new Color(0.16f, 0.16f, 0.16f, 1f);
+                header.style.borderBottomWidth = 1;
+                header.style.borderBottomColor = new Color(0.11f, 0.11f, 0.11f, 1f);
+            }
+
+            var logo = rootVisualElement.Q("header-logo");
+            if (logo != null)
+            {
+                logo.style.width = 16;
+                logo.style.height = 16;
+                logo.style.minWidth = 16;
+                logo.style.minHeight = 16;
+                logo.style.borderTopLeftRadius = 4;
+                logo.style.borderTopRightRadius = 4;
+                logo.style.borderBottomLeftRadius = 4;
+                logo.style.borderBottomRightRadius = 4;
+                logo.style.backgroundColor = new Color(0.38f, 0.63f, 0.88f, 1f);
+                logo.style.marginRight = 6;
+            }
+
+            var statusBarElem = rootVisualElement.Q<Label>("status-bar");
+            if (statusBarElem != null)
+            {
+                statusBarElem.style.paddingLeft = 8;
+                statusBarElem.style.paddingRight = 8;
+                statusBarElem.style.paddingTop = 3;
+                statusBarElem.style.paddingBottom = 3;
+                statusBarElem.style.backgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
+                statusBarElem.style.borderTopWidth = 1;
+                statusBarElem.style.borderTopColor = new Color(0.12f, 0.12f, 0.12f, 1f);
+                statusBarElem.style.color = new Color(0.65f, 0.65f, 0.65f, 1f);
+                statusBarElem.style.fontSize = 11;
+            }
+
             // Setup toolbar
             _toolbar = new UIToolbarPanel();
             _toolbar.Bind(rootVisualElement);

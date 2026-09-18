@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
     <ui:VisualElement name="root" class="root">
+        <!-- Header: Branded repo title & placeholder logo -->
+        <ui:VisualElement name="window-header" class="window-header">
+            <ui:VisualElement name="header-logo" class="header-logo" />
+            <ui:Label text="Milfoy" class="header-title" />
+            <ui:Label text="UI Layer &amp; 3D Depth Inspector" class="header-subtitle" />
+        </ui:VisualElement>
+
         <!-- Toolbar -->
         <ui:VisualElement name="toolbar" class="toolbar">
             <ui:VisualElement name="toolbar-row-presets" class="toolbar-row">
