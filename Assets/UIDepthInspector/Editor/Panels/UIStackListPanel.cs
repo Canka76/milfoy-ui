@@ -25,12 +25,17 @@ namespace UIDepthInspector.Editor.Panels
         public void Bind(VisualElement root)
         {
             _listView = root.Q<ListView>("stack-list");
-            _listView.makeItem = MakeRow;
-            _listView.bindItem = BindRow;
-            _listView.selectionType = SelectionType.Single;
-            _listView.itemsSource = _filteredEntries;
-            _listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
-
+            if (_listView != null)
+            {
+                _listView.makeItem = MakeRow;
+                _listView.bindItem = BindRow;
+                _listView.selectionType = SelectionType.Single;
+                _listView.itemsSource = _filteredEntries;
+                _listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
+                _listView.style.flexGrow = 1;
+                _listView.style.flexShrink = 0;
+                _listView.style.minHeight = 100;
+            }
             _listView.selectionChanged += selection =>
             {
                 foreach (var item in selection)

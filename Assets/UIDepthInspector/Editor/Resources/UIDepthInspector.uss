@@ -7,14 +7,17 @@
 
 .split-view {
     flex-grow: 1;
+    flex-shrink: 0;
     height: 100%;
+    width: 100%;
 }
 
 .toolbar {
-    padding: 5px 6px;
+    padding: 6px 8px;
     background-color: #242424;
     border-bottom-width: 1px;
     border-bottom-color: #1a1a1a;
+    flex-shrink: 0;
 }
 
 .toolbar-row {
@@ -54,7 +57,7 @@
 
 .search-field {
     flex-grow: 1;
-    margin-right: 4px;
+    margin-right: 6px;
 }
 
 .search-field > .unity-text-field__input {
@@ -68,25 +71,33 @@
 
 .viewport {
     flex-grow: 1;
+    height: 100%;
     min-width: 200px;
 }
 
 .list-pane {
     flex-direction: column;
+    flex-grow: 1;
+    flex-shrink: 0;
+    height: 100%;
     min-width: 340px;
 }
 
 .stack-list {
     flex-grow: 1;
+    flex-shrink: 0;
+    min-height: 100px;
 }
 
 .list-footer {
     flex-direction: row;
-    padding: 4px;
+    padding: 4px 6px;
     border-top-width: 1px;
     border-top-color: #1a1a1a;
     background-color: #222222;
     align-items: center;
+    flex-shrink: 0;
+    margin-top: auto;
 }
 
 .canvas-dropdown {
@@ -100,11 +111,12 @@
 
 .status-bar {
     padding: 3px 8px;
-    background-color: #1e1e1e;
+    background-color: #181818;
     font-size: 11px;
     color: #999;
     border-top-width: 1px;
-    border-top-color: #141414;
+    border-top-color: #121212;
+    flex-shrink: 0;
 }
 
 /* Stack list row styles */

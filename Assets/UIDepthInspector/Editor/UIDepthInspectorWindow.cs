@@ -46,13 +46,25 @@ namespace UIDepthInspector.Editor
             _viewport = new UIPreview3DViewport();
             _viewport.Initialize();
             rootVisualElement.style.flexGrow = 1;
+            rootVisualElement.style.flexDirection = FlexDirection.Column;
             rootVisualElement.style.height = Length.Percent(100);
             rootVisualElement.style.width = Length.Percent(100);
 
+            // Clear prior children on domain reload to prevent orphaned duplicated visual trees
+            rootVisualElement.Clear();
+
             // Load UXML & USS reliably in Editor
             var visualTree = LoadEditorAsset<VisualTreeAsset>("UIDepthInspector", "uxml");
+            VisualElement templateRoot = null;
             if (visualTree != null)
-                visualTree.CloneTree(rootVisualElement);
+            {
+                templateRoot = visualTree.Instantiate();
+                templateRoot.style.flexGrow = 1;
+                templateRoot.style.flexDirection = FlexDirection.Column;
+                templateRoot.style.height = Length.Percent(100);
+                templateRoot.style.width = Length.Percent(100);
+                rootVisualElement.Add(templateRoot);
+            }
 
             var stylesheet = LoadEditorAsset<StyleSheet>("UIDepthInspector", "uss");
             if (stylesheet != null)
@@ -62,6 +74,7 @@ namespace UIDepthInspector.Editor
             if (splitView != null)
             {
                 splitView.style.flexGrow = 1;
+                splitView.style.flexShrink = 0;
                 splitView.style.height = Length.Percent(100);
             }
 
