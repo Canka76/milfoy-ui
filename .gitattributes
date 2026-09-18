@@ -1,0 +1,21 @@
+# Force LF on all text files regardless of contributor OS
+* text=auto eol=lf
+
+*.cs      text eol=lf
+*.json    text eol=lf
+*.yaml    text eol=lf
+*.yml     text eol=lf
+*.md      text eol=lf
+*.shader  text eol=lf
+*.uxml    text eol=lf
+*.uss     text eol=lf
+*.asmdef  text eol=lf
+
+# Unity binary formats — no line-ending conversion
+*.png     binary
+*.jpg     binary
+*.psd     binary
+*.asset   -text
+*.meta    -text
+*.prefab  -text
+*.unity   -text

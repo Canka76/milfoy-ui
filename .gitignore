@@ -1,0 +1,28 @@
+# Unity project artifacts (test project alongside the package)
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# IDE
+.idea/
+.vs/
+*.csproj
+*.sln
+*.user
+*.suo
+*.userprefs
+
+# OS
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+
+# Node (if commitlint run locally by a contributor)
+node_modules/
+commitlint.config.js
+package-lock.json
