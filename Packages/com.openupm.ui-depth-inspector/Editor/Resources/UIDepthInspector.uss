@@ -1,6 +1,13 @@
 .root {
     flex-grow: 1;
     flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.split-view {
+    flex-grow: 1;
+    height: 100%;
 }
 
 .toolbar {

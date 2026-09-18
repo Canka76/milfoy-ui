@@ -45,13 +45,12 @@ namespace UIDepthInspector.Editor
             _viewport = new UIPreview3DViewport();
             _viewport.Initialize();
 
-            // Load UXML
-            var visualTree = Resources.Load<VisualTreeAsset>("UIDepthInspector");
+            // Load UXML & USS reliably in Editor (supporting both Assets/ and Packages/ locations)
+            var visualTree = LoadEditorAsset<VisualTreeAsset>("UIDepthInspector", "uxml");
             if (visualTree != null)
                 visualTree.CloneTree(rootVisualElement);
 
-            // Load USS
-            var stylesheet = Resources.Load<StyleSheet>("UIDepthInspector");
+            var stylesheet = LoadEditorAsset<StyleSheet>("UIDepthInspector", "uss");
             if (stylesheet != null)
                 rootVisualElement.styleSheets.Add(stylesheet);
 
@@ -305,6 +304,39 @@ namespace UIDepthInspector.Editor
         void RebuildViewportFromFiltered()
         {
             // Viewport shows all entries; filtering only affects list visibility
+        }
+
+        static T LoadEditorAsset<T>(string filenameWithoutExt, string extension) where T : UnityEngine.Object
+        {
+            // 1. Try Resources.Load
+            var res = Resources.Load<T>(filenameWithoutExt);
+            if (res != null) return res;
+
+            // 2. Try AssetDatabase search
+            string[] guids = AssetDatabase.FindAssets($"{filenameWithoutExt} t:{typeof(T).Name}");
+            foreach (var guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (path.EndsWith($".{extension}", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    var asset = AssetDatabase.LoadAssetAtPath<T>(path);
+                    if (asset != null) return asset;
+                }
+            }
+
+            // 3. Fallback known paths
+            string[] fallbackPaths = new[]
+            {
+                $"Assets/UIDepthInspector/Editor/Resources/{filenameWithoutExt}.{extension}",
+                $"Packages/com.openupm.ui-depth-inspector/Editor/Resources/{filenameWithoutExt}.{extension}"
+            };
+            foreach (var p in fallbackPaths)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<T>(p);
+                if (asset != null) return asset;
+            }
+
+            return null;
         }
     }
 }

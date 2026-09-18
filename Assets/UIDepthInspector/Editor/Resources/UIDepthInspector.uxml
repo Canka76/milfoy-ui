@@ -21,7 +21,7 @@
         </ui:VisualElement>
 
         <!-- Main content split -->
-        <ui:TwoPaneSplitView name="split-view" fixed-pane-index="1" fixed-pane-initial-dimension="380" orientation="Horizontal">
+        <ui:TwoPaneSplitView name="split-view" class="split-view" fixed-pane-index="1" fixed-pane-initial-dimension="380" orientation="Horizontal">
             <!-- Left: 3D Viewport (IMGUI) -->
             <ui:IMGUIContainer name="viewport-container" class="viewport" />
 
