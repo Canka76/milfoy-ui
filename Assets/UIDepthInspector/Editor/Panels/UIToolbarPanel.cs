@@ -142,54 +142,73 @@ namespace UIDepthInspector.Editor.Panels
                 SearchQuery = evt.newValue ?? "";
                 OnFilterChanged?.Invoke();
             });
-
-            root.Q<Toggle>("toggle-raycast").RegisterValueChangedCallback(evt =>
+            var toggleRaycast = root.Q<Toggle>("toggle-raycast");
+            if (toggleRaycast != null)
             {
-                RaycastOnly = evt.newValue;
-                OnFilterChanged?.Invoke();
-            });
+                toggleRaycast.RegisterValueChangedCallback(evt =>
+                {
+                    RaycastOnly = evt.newValue;
+                    OnFilterChanged?.Invoke();
+                });
+            }
 
-            root.Q<Toggle>("toggle-warnings").RegisterValueChangedCallback(evt =>
+            var toggleWarnings = root.Q<Toggle>("toggle-warnings");
+            if (toggleWarnings != null)
             {
-                WarningsOnly = evt.newValue;
-                OnFilterChanged?.Invoke();
-            });
+                toggleWarnings.RegisterValueChangedCallback(evt =>
+                {
+                    WarningsOnly = evt.newValue;
+                    OnFilterChanged?.Invoke();
+                });
+            }
 
-            root.Q<Toggle>("toggle-active").RegisterValueChangedCallback(evt =>
+            var toggleActive = root.Q<Toggle>("toggle-active");
+            if (toggleActive != null)
             {
-                ActiveOnly = evt.newValue;
-                OnFilterChanged?.Invoke();
-            });
+                toggleActive.RegisterValueChangedCallback(evt =>
+                {
+                    ActiveOnly = evt.newValue;
+                    OnFilterChanged?.Invoke();
+                });
+            }
 
             _canvasDropdown = root.Q<DropdownField>("canvas-filter");
-            _canvasDropdown.RegisterValueChangedCallback(evt =>
+            if (_canvasDropdown != null)
             {
-                if (evt.newValue == "All")
-                    CanvasFilterId = -1;
-                else
+                _canvasDropdown.RegisterValueChangedCallback(evt =>
                 {
-                    var match = _canvasOptions.FirstOrDefault(c => c.name == evt.newValue);
-                    CanvasFilterId = match.id;
-                }
-                OnFilterChanged?.Invoke();
-            });
+                    if (evt.newValue == "All")
+                        CanvasFilterId = -1;
+                    else
+                    {
+                        var match = _canvasOptions.FirstOrDefault(c => c.name == evt.newValue);
+                        CanvasFilterId = match.id;
+                    }
+                    OnFilterChanged?.Invoke();
+                });
+            }
         }
 
         public void PopulateCanvasDropdown(IReadOnlyList<UIElementEntry> entries)
         {
             _canvasOptions.Clear();
-            var seen = new HashSet<int>();
-
-            foreach (var e in entries)
+            if (entries != null)
             {
-                if (seen.Add(e.RootCanvasId))
-                    _canvasOptions.Add((e.RootCanvasId, e.RootCanvasName));
+                var seen = new HashSet<int>();
+                foreach (var e in entries)
+                {
+                    if (!string.IsNullOrEmpty(e.RootCanvasName) && seen.Add(e.RootCanvasId))
+                        _canvasOptions.Add((e.RootCanvasId, e.RootCanvasName));
+                }
             }
 
-            var choices = new List<string> { "All" };
-            choices.AddRange(_canvasOptions.Select(c => c.name));
-            _canvasDropdown.choices = choices;
-            _canvasDropdown.SetValueWithoutNotify("All");
+            if (_canvasDropdown != null)
+            {
+                var choices = new List<string> { "All" };
+                choices.AddRange(_canvasOptions.Select(c => c.name));
+                _canvasDropdown.choices = choices;
+                _canvasDropdown.SetValueWithoutNotify("All");
+            }
             CanvasFilterId = -1;
         }
     }
