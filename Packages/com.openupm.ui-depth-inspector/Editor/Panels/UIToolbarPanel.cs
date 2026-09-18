@@ -137,11 +137,15 @@ namespace UIDepthInspector.Editor.Panels
                     OnThicknessChanged?.Invoke(clamped);
                 });
             }
-            root.Q<TextField>("search-field").RegisterValueChangedCallback(evt =>
+            var searchField = root.Q<TextField>("search-field");
+            if (searchField != null)
             {
-                SearchQuery = evt.newValue ?? "";
-                OnFilterChanged?.Invoke();
-            });
+                searchField.RegisterValueChangedCallback(evt =>
+                {
+                    SearchQuery = evt.newValue ?? "";
+                    OnFilterChanged?.Invoke();
+                });
+            }
             var toggleRaycast = root.Q<Toggle>("toggle-raycast");
             if (toggleRaycast != null)
             {

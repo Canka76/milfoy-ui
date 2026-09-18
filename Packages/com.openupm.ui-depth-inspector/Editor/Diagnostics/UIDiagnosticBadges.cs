@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UIDepthInspector.Editor.Diagnostics
@@ -6,6 +7,17 @@ namespace UIDepthInspector.Editor.Diagnostics
 
     public static class UIDiagnosticBadges
     {
+        public static Color GetBadgeColor(DiagnosticFlags flags)
+        {
+            if ((flags & DiagnosticFlags.Inactive) != 0)
+                return new Color(0.502f, 0.502f, 0.502f, 1f); // #808080
+            if ((flags & DiagnosticFlags.GhostBlocker) != 0)
+                return new Color(1f, 0.690f, 0.188f, 1f); // #FFB030
+            if ((flags & DiagnosticFlags.RaycastBlocker) != 0)
+                return new Color(0.878f, 0.376f, 0.376f, 1f); // #E06060
+            return new Color(0.376f, 0.627f, 0.878f, 1f); // #60A0E0 (Passive)
+        }
+
         public static VisualElement CreateDot(DiagnosticFlags flags)
         {
             var dot = new VisualElement();

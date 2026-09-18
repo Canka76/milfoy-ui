@@ -21,6 +21,7 @@ namespace UIDepthInspector.Editor.Core
     public struct UIElementEntry
     {
         public int GlobalDrawIndex;
+        public int InstanceId;
         public string Name;
         public bool IsActive;
         public bool RaycastTarget;
@@ -32,5 +33,6 @@ namespace UIDepthInspector.Editor.Core
         public string RootCanvasName;
         public DiagnosticFlags Flags;
         public Transform Transform;
+        public Color? CustomColor;
     }
 }

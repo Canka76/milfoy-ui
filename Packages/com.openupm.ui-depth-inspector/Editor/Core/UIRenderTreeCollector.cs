@@ -151,10 +151,17 @@ namespace UIDepthInspector.Editor.Core
                 }
 
                 float effectiveAlpha = graphic.color.a * cumulativeAlpha;
+                int instanceId = current.gameObject.GetHashCode();
+                Color? customColor = null;
+                if (UICustomColorRegistry.TryGetColor(instanceId, out var col))
+                {
+                    customColor = col;
+                }
 
                 s_Result.Add(new UIElementEntry
                 {
                     GlobalDrawIndex = globalIndex++,
+                    InstanceId = instanceId,
                     Name = current.gameObject.name,
                     IsActive = current.gameObject.activeInHierarchy,
                     RaycastTarget = graphic.raycastTarget,
@@ -166,6 +173,7 @@ namespace UIDepthInspector.Editor.Core
                     RootCanvasName = rootCanvas.gameObject.name,
                     Flags = DiagnosticFlags.None, // computed by UIDiagnosticAnalyzer
                     Transform = current,
+                    CustomColor = customColor,
                 });
             }
 

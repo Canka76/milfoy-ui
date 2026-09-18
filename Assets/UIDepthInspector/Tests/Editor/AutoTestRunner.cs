@@ -24,7 +24,8 @@ namespace UIDepthInspector.Editor.Tests
             RunTest("Analyze_GhostBlockerWithZeroAlpha_SetsGhostBlockerFlag", Test_GhostBlocker, ref passed, ref failed);
             RunTest("Analyze_PassiveVisual_SetsPassiveVisualFlag", Test_PassiveVisual, ref passed, ref failed);
             RunTest("Analyze_MaskAndRectMask2D_SetsCorrespondingMaskFlags", Test_MaskFlags, ref passed, ref failed);
-
+            RunTest("CustomColorRegistry_Persistence", Test_CustomColorRegistry_Persistence, ref passed, ref failed);
+            RunTest("UIElementEntry_CustomColor", Test_UIElementEntry_CustomColor, ref passed, ref failed);
             Debug.Log($"================ TEST SUMMARY: {passed} PASSED, {failed} FAILED ================");
 
             if (Application.isBatchMode)
@@ -262,6 +263,101 @@ namespace UIDepthInspector.Editor.Tests
             }
             finally
             {
+                Object.DestroyImmediate(canvasGo);
+            }
+        }
+
+        static void Test_CustomColorRegistry_Persistence()
+        {
+            UICustomColorRegistry.ClearAll();
+            try
+            {
+                int testId1 = 12345;
+                int testId2 = 67890;
+                var color1 = new Color(1f, 0.5f, 0.25f, 1f);
+                var color2 = new Color(0f, 1f, 0f, 0.8f);
+
+                UICustomColorRegistry.SetColor(testId1, color1);
+                UICustomColorRegistry.SetColor(testId2, color2);
+
+                if (!UICustomColorRegistry.TryGetColor(testId1, out var retrieved1))
+                    throw new System.Exception("Failed to get color1 before reload");
+                if (retrieved1 != color1)
+                    throw new System.Exception($"Color mismatch before reload: expected {color1}, got {retrieved1}");
+
+                // Simulate domain reload by reloading from SessionState
+                UICustomColorRegistry.Reload();
+
+                if (!UICustomColorRegistry.TryGetColor(testId1, out var reloaded1))
+                    throw new System.Exception("Failed to get color1 after reload");
+                if (Mathf.Abs(reloaded1.r - color1.r) > 0.001f ||
+                    Mathf.Abs(reloaded1.g - color1.g) > 0.001f ||
+                    Mathf.Abs(reloaded1.b - color1.b) > 0.001f ||
+                    Mathf.Abs(reloaded1.a - color1.a) > 0.001f)
+                    throw new System.Exception($"Color mismatch after reload: expected {color1}, got {reloaded1}");
+
+                if (!UICustomColorRegistry.TryGetColor(testId2, out var reloaded2))
+                    throw new System.Exception("Failed to get color2 after reload");
+
+                // Test RemoveColor
+                UICustomColorRegistry.RemoveColor(testId1);
+                UICustomColorRegistry.Reload();
+
+                if (UICustomColorRegistry.TryGetColor(testId1, out _))
+                    throw new System.Exception("color1 should have been removed");
+                if (!UICustomColorRegistry.TryGetColor(testId2, out _))
+                    throw new System.Exception("color2 should still exist");
+
+                // Test ClearAll
+                UICustomColorRegistry.ClearAll();
+                UICustomColorRegistry.Reload();
+
+                if (UICustomColorRegistry.TryGetColor(testId2, out _))
+                    throw new System.Exception("color2 should have been cleared");
+            }
+            finally
+            {
+                UICustomColorRegistry.ClearAll();
+            }
+        }
+
+        static void Test_UIElementEntry_CustomColor()
+        {
+            UICustomColorRegistry.ClearAll();
+            var canvasGo = new GameObject("Canvas", typeof(Canvas));
+            try
+            {
+                var imgGo1 = new GameObject("Image1", typeof(RectTransform), typeof(Image));
+                imgGo1.transform.SetParent(canvasGo.transform, false);
+
+                var imgGo2 = new GameObject("Image2", typeof(RectTransform), typeof(Image));
+                imgGo2.transform.SetParent(canvasGo.transform, false);
+                int id1 = imgGo1.GetHashCode();
+                int id2 = imgGo2.GetHashCode();
+                var customColor1 = new Color(0.2f, 0.4f, 0.6f, 1f);
+
+                UICustomColorRegistry.SetColor(id1, customColor1);
+
+                var entries = UIRenderTreeCollector.Collect(new[] { canvasGo.GetComponent<Canvas>() });
+
+                if (entries.Count != 2)
+                    throw new System.Exception($"Expected 2 entries, got {entries.Count}");
+
+                if (entries[0].InstanceId != id1)
+                    throw new System.Exception($"Expected entry 0 InstanceId to be {id1}, got {entries[0].InstanceId}");
+                if (!entries[0].CustomColor.HasValue)
+                    throw new System.Exception("Expected entry 0 CustomColor to have value");
+                if (entries[0].CustomColor.Value != customColor1)
+                    throw new System.Exception($"Expected entry 0 CustomColor {customColor1}, got {entries[0].CustomColor.Value}");
+
+                if (entries[1].InstanceId != id2)
+                    throw new System.Exception($"Expected entry 1 InstanceId to be {id2}, got {entries[1].InstanceId}");
+                if (entries[1].CustomColor.HasValue)
+                    throw new System.Exception("Expected entry 1 CustomColor to be null");
+            }
+            finally
+            {
+                UICustomColorRegistry.ClearAll();
                 Object.DestroyImmediate(canvasGo);
             }
         }

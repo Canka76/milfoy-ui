@@ -136,6 +136,16 @@ namespace UIDepthInspector.Editor
             _listPanel.OnActiveToggled += ToggleActive;
             _listPanel.OnRaycastToggled += ToggleRaycast;
             _listPanel.OnSoloToggled += ToggleSolo;
+            _listPanel.OnCustomColorAssigned += (instanceId, color) =>
+            {
+                _cache.Invalidate();
+                _needsRepaint = true;
+            };
+            _listPanel.OnCustomColorReset += instanceId =>
+            {
+                _cache.Invalidate();
+                _needsRepaint = true;
+            };
 
             // Setup viewport IMGUI container
             var viewportContainer = rootVisualElement.Q<IMGUIContainer>("viewport-container");

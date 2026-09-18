@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -15,6 +16,8 @@ namespace UIDepthInspector.Editor.Panels
         public Action<UIElementEntry> OnActiveToggled;
         public Action<UIElementEntry> OnRaycastToggled;
         public Action<UIElementEntry> OnSoloToggled;
+        public Action<int, Color> OnCustomColorAssigned;
+        public Action<int> OnCustomColorReset;
 
         ListView _listView;
         Button _copyBtn;
@@ -40,11 +43,22 @@ namespace UIDepthInspector.Editor.Panels
 
                 _listView.selectionChanged += selection =>
                 {
+                    bool found = false;
                     foreach (var item in selection)
                     {
                         if (item is UIElementEntry entry)
+                        {
+                            _selectedGlobalIndex = entry.GlobalDrawIndex;
+                            found = true;
                             OnEntryClicked?.Invoke(entry);
+                            break;
+                        }
                     }
+                    if (!found)
+                    {
+                        _selectedGlobalIndex = -1;
+                    }
+                    _listView.RefreshItems();
                 };
             }
 
@@ -79,33 +93,60 @@ namespace UIDepthInspector.Editor.Panels
                 _filteredEntries.Add(e);
             }
 
-            _listView.itemsSource = _filteredEntries;
-            _listView.Rebuild();
+            if (_listView != null)
+            {
+                _listView.itemsSource = _filteredEntries;
+                _listView.Rebuild();
+            }
         }
 
         public void SelectEntry(int globalDrawIndex)
         {
             _selectedGlobalIndex = globalDrawIndex;
+            if (_listView == null) return;
             for (int i = 0; i < _filteredEntries.Count; i++)
             {
                 if (_filteredEntries[i].GlobalDrawIndex == globalDrawIndex)
                 {
                     _listView.SetSelectionWithoutNotify(new[] { i });
                     _listView.ScrollToItem(i);
+                    _listView.RefreshItems();
                     return;
                 }
             }
+            _listView.ClearSelection();
+            _listView.RefreshItems();
+        }
+        sealed class RowHolder
+        {
+            public UIElementEntry Entry;
         }
 
         VisualElement MakeRow()
         {
             var rowContainer = new VisualElement { name = "row-container" };
+            var holder = new RowHolder();
+            rowContainer.userData = holder;
+
             rowContainer.AddToClassList("stack-row-container");
             rowContainer.style.flexDirection = FlexDirection.Column;
             rowContainer.style.borderBottomWidth = 1;
             rowContainer.style.borderBottomColor = new Color(0.2f, 0.2f, 0.2f, 1f);
             rowContainer.style.paddingTop = 2;
             rowContainer.style.paddingBottom = 2;
+
+            rowContainer.AddManipulator(new ContextualMenuManipulator(evt =>
+            {
+                if (rowContainer.userData is RowHolder h && h.Entry.InstanceId != 0)
+                {
+                    var entry = h.Entry;
+                    evt.menu.AppendAction("Reset Custom Color", _ =>
+                    {
+                        UICustomColorRegistry.RemoveColor(entry.InstanceId);
+                        OnCustomColorReset?.Invoke(entry.InstanceId);
+                    }, entry.CustomColor.HasValue ? DropdownMenuAction.Status.Normal : DropdownMenuAction.Status.Disabled);
+                }
+            }));
 
             // Main Row (Horizontal)
             var mainRow = new VisualElement { name = "main-row" };
@@ -141,6 +182,26 @@ namespace UIDepthInspector.Editor.Panels
             dot.style.borderBottomRightRadius = 5;
             dot.style.marginRight = 6;
             mainRow.Add(dot);
+            var colorPicker = new ColorField { name = "color-picker", showAlpha = true, showEyeDropper = true };
+            colorPicker.AddToClassList("color-picker");
+            colorPicker.style.width = 24;
+            colorPicker.style.height = 16;
+            colorPicker.style.minWidth = 24;
+            colorPicker.style.minHeight = 16;
+            colorPicker.style.flexShrink = 0;
+            colorPicker.style.marginRight = 4;
+            colorPicker.style.marginLeft = 0;
+            colorPicker.style.marginTop = 0;
+            colorPicker.style.marginBottom = 0;
+            colorPicker.RegisterValueChangedCallback(evt =>
+            {
+                if (rowContainer.userData is RowHolder h && h.Entry.InstanceId != 0)
+                {
+                    UICustomColorRegistry.SetColor(h.Entry.InstanceId, evt.newValue);
+                    OnCustomColorAssigned?.Invoke(h.Entry.InstanceId, evt.newValue);
+                }
+            });
+            mainRow.Add(colorPicker);
 
             var nameLbl = new Label { name = "name", pickingMode = PickingMode.Ignore };
             nameLbl.AddToClassList("stack-name");
@@ -184,6 +245,13 @@ namespace UIDepthInspector.Editor.Panels
             eyeBtn.style.minHeight = 22;
             eyeBtn.style.flexShrink = 0;
             eyeBtn.style.marginLeft = 2;
+            eyeBtn.clicked += () =>
+            {
+                if (rowContainer.userData is RowHolder h && h.Entry.InstanceId != 0)
+                {
+                    OnActiveToggled?.Invoke(h.Entry);
+                }
+            };
             actions.Add(eyeBtn);
 
             var rayBtn = new Button { name = "ray", text = "◎", tooltip = "Toggle Graphic.raycastTarget (Turn OFF to stop blocking clicks on objects below)" };
@@ -194,6 +262,13 @@ namespace UIDepthInspector.Editor.Panels
             rayBtn.style.minHeight = 22;
             rayBtn.style.flexShrink = 0;
             rayBtn.style.marginLeft = 2;
+            rayBtn.clicked += () =>
+            {
+                if (rowContainer.userData is RowHolder h && h.Entry.InstanceId != 0)
+                {
+                    OnRaycastToggled?.Invoke(h.Entry);
+                }
+            };
             actions.Add(rayBtn);
 
             var soloBtn = new Button { name = "solo", text = "S", tooltip = "Solo Isolate (Hide siblings under this Canvas to inspect alone. Press ~ to restore)" };
@@ -204,6 +279,13 @@ namespace UIDepthInspector.Editor.Panels
             soloBtn.style.minHeight = 22;
             soloBtn.style.flexShrink = 0;
             soloBtn.style.marginLeft = 2;
+            soloBtn.clicked += () =>
+            {
+                if (rowContainer.userData is RowHolder h && h.Entry.InstanceId != 0)
+                {
+                    OnSoloToggled?.Invoke(h.Entry);
+                }
+            };
             actions.Add(soloBtn);
 
             mainRow.Add(actions);
@@ -240,9 +322,32 @@ namespace UIDepthInspector.Editor.Panels
         {
             if (index < 0 || index >= _filteredEntries.Count) return;
             var entry = _filteredEntries[index];
+            if (row.userData is RowHolder holder)
+            {
+                holder.Entry = entry;
+            }
+            else
+            {
+                row.userData = new RowHolder { Entry = entry };
+            }
+
+            // High-readability selection highlighting
+            bool isSelected = _selectedGlobalIndex == entry.GlobalDrawIndex;
+            row.EnableInClassList("stack-row-container--selected", isSelected);
+
+            // Color picker
+            var colorPicker = row.Q<ColorField>("color-picker");
+            if (colorPicker != null)
+            {
+                Color currentColor = entry.CustomColor ?? UIDiagnosticBadges.GetBadgeColor(entry.Flags);
+                colorPicker.SetValueWithoutNotify(currentColor);
+            }
 
             var indexLabel = row.Q<Label>("index");
-            indexLabel.text = $"#{entry.GlobalDrawIndex:D2}";
+            if (indexLabel != null)
+            {
+                indexLabel.text = $"#{entry.GlobalDrawIndex:D2}";
+            }
 
             // Update dot in-place
             var dot = row.Q("dot");
@@ -250,8 +355,11 @@ namespace UIDepthInspector.Editor.Panels
                 UIDiagnosticBadges.UpdateDot(dot, entry.Flags);
 
             var nameLabel = row.Q<Label>("name");
-            nameLabel.text = entry.Name;
-            nameLabel.EnableInClassList("stack-name--inactive", !entry.IsActive);
+            if (nameLabel != null)
+            {
+                nameLabel.text = entry.Name;
+                nameLabel.EnableInClassList("stack-name--inactive", !entry.IsActive);
+            }
 
             // Warning badge & inline log details
             bool isGhost = (entry.Flags & DiagnosticFlags.GhostBlocker) != 0;
@@ -286,18 +394,7 @@ namespace UIDepthInspector.Editor.Panels
                     logBox.style.display = DisplayStyle.None;
                 }
             }
-
-            // Wire button callbacks
-            var eyeBtn = row.Q<Button>("eye");
-            eyeBtn.clickable = new Clickable(() => OnActiveToggled?.Invoke(entry));
-
-            var rayBtn = row.Q<Button>("ray");
-            rayBtn.clickable = new Clickable(() => OnRaycastToggled?.Invoke(entry));
-
-            var soloBtn = row.Q<Button>("solo");
-            soloBtn.clickable = new Clickable(() => OnSoloToggled?.Invoke(entry));
         }
-
         void CopyStackToClipboard()
         {
             if (_filteredEntries.Count == 0) return;

@@ -23,11 +23,13 @@ namespace UIDepthInspector.Editor.Viewport
         readonly List<GameObject> _previewObjects = new();
         readonly List<Collider> _colliders = new();
 
+        static readonly int ColorPropId = Shader.PropertyToID("_Color");
+        readonly MaterialPropertyBlock _propBlock = new();
+
         Material _matRaycast;
         Material _matPassive;
         Material _matInactive;
         Material _matGhost;
-
         // Camera orbit state
         Vector2 _orbitAngles = new(20f, -30f);
         Vector3 _pivotOffset = Vector3.zero;
@@ -89,6 +91,8 @@ namespace UIDepthInspector.Editor.Viewport
                 var go = CreateQuad(entry, i, entries.Count);
                 _previewObjects.Add(go);
             }
+
+            UpdateQuadColors();
         }
 
         public void SetExplosionFactor(float factor)
@@ -129,6 +133,7 @@ namespace UIDepthInspector.Editor.Viewport
         public void HighlightEntry(int globalDrawIndex)
         {
             _highlightIndex = globalDrawIndex;
+            UpdateQuadColors();
         }
 
         public void FrameEntry(int globalDrawIndex)
@@ -260,7 +265,7 @@ namespace UIDepthInspector.Editor.Viewport
                 Handles.matrix = Matrix4x4.identity;
             }
 
-            // Draw selection highlight with glowing yellow volume cage
+            // Draw selection highlight with glowing neon halo volume cage
             if (_highlightIndex >= 0 && _highlightIndex < _previewObjects.Count)
             {
                 var go = _previewObjects[_highlightIndex];
@@ -367,17 +372,69 @@ namespace UIDepthInspector.Editor.Viewport
         Material GetMaterialForFlags(DiagnosticFlags flags)
         {
             if ((flags & DiagnosticFlags.Inactive) != 0) return _matInactive;
-            if ((flags & DiagnosticFlags.GhostBlocker) != 0) return _matGhost;
+            if ((flags & (DiagnosticFlags.GhostBlocker | DiagnosticFlags.ZeroSize)) != 0) return _matGhost;
             if ((flags & DiagnosticFlags.RaycastBlocker) != 0) return _matRaycast;
             return _matPassive;
         }
 
+        Color GetDefaultColor(DiagnosticFlags flags)
+        {
+            if ((flags & DiagnosticFlags.Inactive) != 0) return new Color(0.5f, 0.5f, 0.5f, 0.3f);
+            if ((flags & (DiagnosticFlags.GhostBlocker | DiagnosticFlags.ZeroSize)) != 0) return new Color(1f, 0.75f, 0.2f, 0.85f);
+            if ((flags & DiagnosticFlags.RaycastBlocker) != 0) return new Color(0.878f, 0.376f, 0.376f, 0.7f);
+            return new Color(0.376f, 0.627f, 0.878f, 0.5f);
+        }
+
+        void UpdateQuadColors()
+        {
+            if (_currentEntries == null) return;
+
+            for (int i = 0; i < _previewObjects.Count && i < _currentEntries.Count; i++)
+            {
+                var go = _previewObjects[i];
+                if (go == null) continue;
+
+                var mr = go.GetComponent<MeshRenderer>();
+                if (mr == null) continue;
+
+                var entry = _currentEntries[i];
+                Color baseColor = entry.CustomColor ?? GetDefaultColor(entry.Flags);
+
+                if (_highlightIndex >= 0)
+                {
+                    if (i != _highlightIndex)
+                    {
+                        baseColor.a *= 0.55f;
+                    }
+                    else
+                    {
+                        baseColor.a = Mathf.Max(baseColor.a, 0.95f);
+                    }
+                }
+
+                _propBlock.Clear();
+                _propBlock.SetColor(ColorPropId, baseColor);
+                mr.SetPropertyBlock(_propBlock);
+            }
+        }
+
         void DrawWireframeCage(Transform t, Bounds localBounds)
         {
-            Handles.color = Color.yellow;
             var matrix = t.localToWorldMatrix;
             Handles.matrix = matrix;
-            Handles.DrawWireCube(localBounds.center, localBounds.size * 1.02f);
+
+            // 1. Inner Core: Neon Cyan
+            Handles.color = new Color(0.0f, 0.9f, 1.0f, 1.0f);
+            Handles.DrawWireCube(localBounds.center, localBounds.size * 1.01f);
+
+            // 2. Inner Glow
+            Handles.color = new Color(0.0f, 0.9f, 1.0f, 0.4f);
+            Handles.DrawWireCube(localBounds.center, localBounds.size * 1.04f);
+
+            // 3. Outer Glow
+            Handles.color = new Color(0.0f, 0.9f, 1.0f, 0.15f);
+            Handles.DrawWireCube(localBounds.center, localBounds.size * 1.08f);
+
             Handles.matrix = Matrix4x4.identity;
         }
 
