@@ -40,6 +40,17 @@ Add to your project's `Packages/manifest.json`:
 
 Open via **Window → UI → UI Depth Inspector**.
 
+### Navigation & Controls
+
+- **Left Mouse Drag** (or **Alt + Left Drag**): Orbit 3D viewport
+- **Alt + Left Drag** / **Middle Mouse Drag**: Pan viewport
+- **Scroll Wheel**: Zoom in/out
+- **Left Click**: Select UI element (synchronized across 3D Viewport, Hierarchy, and Stack List)
+
+### Keyboard Shortcuts
+
+- **`F`**: Frame selected UI element in the 3D viewport
+- **`Escape`**: Exit Solo isolation mode
 ## License
 
 [MIT](LICENSE.md)

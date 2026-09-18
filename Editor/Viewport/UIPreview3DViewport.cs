@@ -127,6 +127,16 @@ namespace UIDepthInspector.Editor.Viewport
             _highlightIndex = globalDrawIndex;
         }
 
+        public void FrameEntry(int globalDrawIndex)
+        {
+            if (globalDrawIndex < 0 || globalDrawIndex >= _previewObjects.Count) return;
+            var go = _previewObjects[globalDrawIndex];
+            if (go == null) return;
+
+            _pivotOffset = go.transform.localPosition;
+            _zoomDistance = 8f;
+        }
+
         public int GetPickedEntryIndex(Vector2 mousePos, Rect viewportRect)
         {
             if (_previewUtility == null || _currentEntries == null || _currentEntries.Count == 0)
@@ -208,6 +218,28 @@ namespace UIDepthInspector.Editor.Viewport
                     if (mf != null && mf.sharedMesh != null)
                         DrawWireframeCage(go.transform, mf.sharedMesh.bounds);
                 }
+            }
+
+            // Draw mask bounds wireframes
+            if (_currentEntries != null)
+            {
+                Handles.color = new Color(0.25f, 0.88f, 0.25f, 0.8f); // green
+                for (int i = 0; i < _previewObjects.Count && i < _currentEntries.Count; i++)
+                {
+                    var entry = _currentEntries[i];
+                    bool hasMask = (entry.Flags & (DiagnosticFlags.HasMask | DiagnosticFlags.HasRectMask2D)) != 0;
+                    if (!hasMask) continue;
+
+                    var go = _previewObjects[i];
+                    if (go == null) continue;
+
+                    var mf = go.GetComponent<MeshFilter>();
+                    if (mf == null || mf.sharedMesh == null) continue;
+
+                    Handles.matrix = go.transform.localToWorldMatrix;
+                    Handles.DrawWireCube(mf.sharedMesh.bounds.center, mf.sharedMesh.bounds.size * 1.01f);
+                }
+                Handles.matrix = Matrix4x4.identity;
             }
 
             var result = _previewUtility.EndPreview();

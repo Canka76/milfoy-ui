@@ -281,6 +281,27 @@ namespace UIDepthInspector.Editor
             }
         }
 
+        [Shortcut("UIDepthInspector/FrameSelected", KeyCode.F)]
+        static void FrameSelectedShortcut()
+        {
+            var wnd = GetWindow<UIDepthInspectorWindow>();
+            if (wnd == null) return;
+
+            var selected = Selection.activeGameObject;
+            if (selected == null) return;
+
+            var entries = wnd._cache.Entries;
+            for (int i = 0; i < entries.Count; i++)
+            {
+                if (entries[i].Transform != null && entries[i].Transform.gameObject == selected)
+                {
+                    wnd._viewport.FrameEntry(entries[i].GlobalDrawIndex);
+                    wnd._needsRepaint = true;
+                    return;
+                }
+            }
+        }
+
         void RebuildViewportFromFiltered()
         {
             // Viewport shows all entries; filtering only affects list visibility
