@@ -38,7 +38,8 @@ namespace UIDepthInspector.Editor.Viewport
 
         // Cached data
         List<UIElementEntry> _currentEntries;
-        Rect _normalizationRect;
+        Vector2 _boundsCenter;
+        float _maxExtent = 1f;
         public void Initialize()
         {
             _previewUtility = new PreviewRenderUtility();
@@ -313,6 +314,7 @@ namespace UIDepthInspector.Editor.Viewport
             float minX = float.MaxValue, minY = float.MaxValue;
             float maxX = float.MinValue, maxY = float.MinValue;
 
+            int validCount = 0;
             foreach (var e in entries)
             {
                 if (e.WorldRect.width < 0.01f && e.WorldRect.height < 0.01f) continue;
@@ -320,12 +322,20 @@ namespace UIDepthInspector.Editor.Viewport
                 minY = Mathf.Min(minY, e.WorldRect.yMin);
                 maxX = Mathf.Max(maxX, e.WorldRect.xMax);
                 maxY = Mathf.Max(maxY, e.WorldRect.yMax);
+                validCount++;
+            }
+
+            if (validCount == 0)
+            {
+                _boundsCenter = Vector2.zero;
+                _maxExtent = 1f;
+                return;
             }
 
             float w = maxX - minX;
             float h = maxY - minY;
-            float size = Mathf.Max(w, h, 1f);
-            _normalizationRect = new Rect(minX, minY, size, size);
+            _boundsCenter = new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
+            _maxExtent = Mathf.Max(w, h, 1f);
         }
 
         GameObject CreateQuad(UIElementEntry entry, int index, int totalCount)
@@ -355,14 +365,14 @@ namespace UIDepthInspector.Editor.Viewport
 
         void PositionQuad(Transform t, UIElementEntry entry, int index, int totalCount)
         {
-            float normX = (entry.WorldRect.center.x - _normalizationRect.x) / _normalizationRect.width * 8f - 4f;
-            float normY = (entry.WorldRect.center.y - _normalizationRect.y) / _normalizationRect.height * 8f - 4f;
+            float normX = (entry.WorldRect.center.x - _boundsCenter.x) / _maxExtent * 8f;
+            float normY = (entry.WorldRect.center.y - _boundsCenter.y) / _maxExtent * 8f;
             float z = totalCount > 0 ? -index * (_explosionFactor / Mathf.Max(totalCount, 1)) : 0f;
 
             t.localPosition = new Vector3(normX, normY, z);
 
-            float scaleX = Mathf.Max(entry.WorldRect.width / _normalizationRect.width * 8f, 0.05f);
-            float scaleY = Mathf.Max(entry.WorldRect.height / _normalizationRect.height * 8f, 0.05f);
+            float scaleX = Mathf.Max(entry.WorldRect.width / _maxExtent * 8f, 0.05f);
+            float scaleY = Mathf.Max(entry.WorldRect.height / _maxExtent * 8f, 0.05f);
             float scaleZ = Mathf.Max(_slabThickness, 0.01f);
 
             t.localScale = new Vector3(scaleX, scaleY, scaleZ);
