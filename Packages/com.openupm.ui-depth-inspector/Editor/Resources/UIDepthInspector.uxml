@@ -32,7 +32,7 @@
             <!-- Left: 3D Viewport (IMGUI) -->
             <ui:IMGUIContainer name="viewport-container" class="viewport" />
 
-            <!-- Right: Stack list & Diagnostic Drawer -->
+            <!-- Right: Stack list with Inline Diagnostics -->
             <ui:VisualElement name="list-pane" class="list-pane">
                 <!-- Column header with action tooltips -->
                 <ui:VisualElement name="stack-header" class="stack-header">
@@ -45,16 +45,6 @@
                 </ui:VisualElement>
 
                 <ui:ListView name="stack-list" class="stack-list" />
-
-                <!-- Diagnostic log drawer -->
-                <ui:VisualElement name="log-drawer" class="log-drawer">
-                    <ui:VisualElement class="log-drawer-header">
-                        <ui:Label text="DIAGNOSTIC LOGS &amp; WARNINGS" class="log-title" />
-                    </ui:VisualElement>
-                    <ui:ScrollView name="log-scroll" class="log-scroll">
-                        <ui:Label name="log-text" text="No issues detected in current Canvas." class="log-content" />
-                    </ui:ScrollView>
-                </ui:VisualElement>
 
                 <ui:VisualElement class="list-footer">
                     <ui:DropdownField name="canvas-filter" label="Canvas" class="canvas-dropdown" />

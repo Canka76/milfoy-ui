@@ -29,7 +29,7 @@ namespace UIDepthInspector.Editor.Panels
             _listView.bindItem = BindRow;
             _listView.selectionType = SelectionType.Single;
             _listView.itemsSource = _filteredEntries;
-            _listView.fixedItemHeight = 26;
+            _listView.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
 
             _listView.selectionChanged += selection =>
             {
@@ -88,14 +88,22 @@ namespace UIDepthInspector.Editor.Panels
 
         VisualElement MakeRow()
         {
-            var row = new VisualElement();
-            row.AddToClassList("stack-row");
-            row.style.flexDirection = FlexDirection.Row;
-            row.style.alignItems = Align.Center;
-            row.style.height = 26;
-            row.style.paddingLeft = 4;
-            row.style.paddingRight = 4;
-            row.style.overflow = Overflow.Hidden;
+            var rowContainer = new VisualElement { name = "row-container" };
+            rowContainer.AddToClassList("stack-row-container");
+            rowContainer.style.flexDirection = FlexDirection.Column;
+            rowContainer.style.borderBottomWidth = 1;
+            rowContainer.style.borderBottomColor = new Color(0.2f, 0.2f, 0.2f, 1f);
+            rowContainer.style.paddingTop = 2;
+            rowContainer.style.paddingBottom = 2;
+
+            // Main Row (Horizontal)
+            var mainRow = new VisualElement { name = "main-row" };
+            mainRow.AddToClassList("stack-row");
+            mainRow.style.flexDirection = FlexDirection.Row;
+            mainRow.style.alignItems = Align.Center;
+            mainRow.style.height = 24;
+            mainRow.style.paddingLeft = 4;
+            mainRow.style.paddingRight = 4;
 
             var indexLbl = new Label { name = "index", pickingMode = PickingMode.Ignore };
             indexLbl.AddToClassList("stack-index");
@@ -107,7 +115,7 @@ namespace UIDepthInspector.Editor.Panels
             indexLbl.style.fontSize = 10;
             indexLbl.style.unityFontStyleAndWeight = FontStyle.Bold;
             indexLbl.style.color = new Color(0.6f, 0.6f, 0.6f, 1f);
-            row.Add(indexLbl);
+            mainRow.Add(indexLbl);
 
             var dot = new VisualElement { name = "dot" };
             dot.AddToClassList("stack-dot");
@@ -121,7 +129,7 @@ namespace UIDepthInspector.Editor.Panels
             dot.style.borderBottomLeftRadius = 5;
             dot.style.borderBottomRightRadius = 5;
             dot.style.marginRight = 6;
-            row.Add(dot);
+            mainRow.Add(dot);
 
             var nameLbl = new Label { name = "name", pickingMode = PickingMode.Ignore };
             nameLbl.AddToClassList("stack-name");
@@ -131,25 +139,24 @@ namespace UIDepthInspector.Editor.Panels
             nameLbl.style.unityTextAlign = TextAnchor.MiddleLeft;
             nameLbl.style.fontSize = 12;
             nameLbl.style.marginRight = 4;
-            row.Add(nameLbl);
+            mainRow.Add(nameLbl);
 
-            var warningLbl = new Label { name = "warning", pickingMode = PickingMode.Ignore };
-            warningLbl.AddToClassList("warning-badge");
-            warningLbl.style.flexShrink = 0;
-            warningLbl.style.fontSize = 10;
-            warningLbl.style.color = new Color(1f, 0.72f, 0.2f, 1f);
-            warningLbl.style.backgroundColor = new Color(1f, 0.72f, 0.2f, 0.15f);
-            warningLbl.style.borderTopLeftRadius = 3;
-            warningLbl.style.borderTopRightRadius = 3;
-            warningLbl.style.borderBottomLeftRadius = 3;
-            warningLbl.style.borderBottomRightRadius = 3;
-            warningLbl.style.paddingLeft = 4;
-            warningLbl.style.paddingRight = 4;
-            warningLbl.style.paddingTop = 1;
-            warningLbl.style.paddingBottom = 1;
-            warningLbl.style.marginRight = 6;
-            warningLbl.style.unityFontStyleAndWeight = FontStyle.Bold;
-            row.Add(warningLbl);
+            var warningBadge = new Label { name = "warning-badge", text = "⚠ WARNING", pickingMode = PickingMode.Ignore };
+            warningBadge.style.flexShrink = 0;
+            warningBadge.style.fontSize = 9;
+            warningBadge.style.color = new Color(1f, 0.72f, 0.2f, 1f);
+            warningBadge.style.backgroundColor = new Color(1f, 0.72f, 0.2f, 0.15f);
+            warningBadge.style.borderTopLeftRadius = 3;
+            warningBadge.style.borderTopRightRadius = 3;
+            warningBadge.style.borderBottomLeftRadius = 3;
+            warningBadge.style.borderBottomRightRadius = 3;
+            warningBadge.style.paddingLeft = 4;
+            warningBadge.style.paddingRight = 4;
+            warningBadge.style.paddingTop = 1;
+            warningBadge.style.paddingBottom = 1;
+            warningBadge.style.marginRight = 6;
+            warningBadge.style.unityFontStyleAndWeight = FontStyle.Bold;
+            mainRow.Add(warningBadge);
 
             var actions = new VisualElement { name = "actions" };
             actions.AddToClassList("row-actions");
@@ -166,10 +173,6 @@ namespace UIDepthInspector.Editor.Panels
             eyeBtn.style.minHeight = 22;
             eyeBtn.style.flexShrink = 0;
             eyeBtn.style.marginLeft = 2;
-            eyeBtn.style.paddingLeft = 0;
-            eyeBtn.style.paddingRight = 0;
-            eyeBtn.style.paddingTop = 0;
-            eyeBtn.style.paddingBottom = 0;
             actions.Add(eyeBtn);
 
             var rayBtn = new Button { name = "ray", text = "◎", tooltip = "Toggle Graphic.raycastTarget (Turn OFF to stop blocking clicks on objects below)" };
@@ -180,13 +183,9 @@ namespace UIDepthInspector.Editor.Panels
             rayBtn.style.minHeight = 22;
             rayBtn.style.flexShrink = 0;
             rayBtn.style.marginLeft = 2;
-            rayBtn.style.paddingLeft = 0;
-            rayBtn.style.paddingRight = 0;
-            rayBtn.style.paddingTop = 0;
-            rayBtn.style.paddingBottom = 0;
             actions.Add(rayBtn);
 
-            var soloBtn = new Button { name = "solo", text = "S", tooltip = "Solo Isolate (Hide siblings under this Canvas to inspect alone. Press ~ or Escape to restore)" };
+            var soloBtn = new Button { name = "solo", text = "S", tooltip = "Solo Isolate (Hide siblings under this Canvas to inspect alone. Press ~ to restore)" };
             soloBtn.AddToClassList("row-btn");
             soloBtn.style.width = 22;
             soloBtn.style.height = 22;
@@ -194,15 +193,36 @@ namespace UIDepthInspector.Editor.Panels
             soloBtn.style.minHeight = 22;
             soloBtn.style.flexShrink = 0;
             soloBtn.style.marginLeft = 2;
-            soloBtn.style.paddingLeft = 0;
-            soloBtn.style.paddingRight = 0;
-            soloBtn.style.paddingTop = 0;
-            soloBtn.style.paddingBottom = 0;
             actions.Add(soloBtn);
 
-            row.Add(actions);
+            mainRow.Add(actions);
+            rowContainer.Add(mainRow);
 
-            return row;
+            // Sub-row: Inline Diagnostic Reason Log
+            var logBox = new VisualElement { name = "inline-log-box" };
+            logBox.style.marginLeft = 42;
+            logBox.style.marginRight = 6;
+            logBox.style.marginTop = 2;
+            logBox.style.marginBottom = 3;
+            logBox.style.paddingLeft = 6;
+            logBox.style.paddingRight = 6;
+            logBox.style.paddingTop = 3;
+            logBox.style.paddingBottom = 3;
+            logBox.style.backgroundColor = new Color(0.18f, 0.15f, 0.12f, 0.9f);
+            logBox.style.borderLeftWidth = 2;
+            logBox.style.borderLeftColor = new Color(1f, 0.72f, 0.2f, 1f);
+            logBox.style.borderTopRightRadius = 3;
+            logBox.style.borderBottomRightRadius = 3;
+
+            var logLbl = new Label { name = "inline-log-text", pickingMode = PickingMode.Ignore };
+            logLbl.style.fontSize = 10;
+            logLbl.style.color = new Color(0.95f, 0.78f, 0.45f, 1f);
+            logLbl.style.whiteSpace = WhiteSpace.Normal;
+            logBox.Add(logLbl);
+
+            rowContainer.Add(logBox);
+
+            return rowContainer;
         }
 
         void BindRow(VisualElement row, int index)
@@ -211,7 +231,6 @@ namespace UIDepthInspector.Editor.Panels
             var entry = _filteredEntries[index];
 
             var indexLabel = row.Q<Label>("index");
-            indexLabel.AddToClassList("stack-index");
             indexLabel.text = $"#{entry.GlobalDrawIndex:D2}";
 
             // Update dot in-place
@@ -220,15 +239,42 @@ namespace UIDepthInspector.Editor.Panels
                 UIDiagnosticBadges.UpdateDot(dot, entry.Flags);
 
             var nameLabel = row.Q<Label>("name");
-            nameLabel.AddToClassList("stack-name");
             nameLabel.text = entry.Name;
             nameLabel.EnableInClassList("stack-name--inactive", !entry.IsActive);
 
-            var warningLabel = row.Q<Label>("warning");
-            warningLabel.AddToClassList("warning-badge");
+            // Warning badge & inline log details
             bool isGhost = (entry.Flags & DiagnosticFlags.GhostBlocker) != 0;
-            warningLabel.text = isGhost ? "⚠ Invisible Hitbox" : "";
-            warningLabel.style.display = isGhost ? DisplayStyle.Flex : DisplayStyle.None;
+            bool isZeroSize = (entry.Flags & DiagnosticFlags.ZeroSize) != 0;
+            bool hasWarning = isGhost || isZeroSize;
+
+            var warningBadge = row.Q<Label>("warning-badge");
+            if (warningBadge != null)
+            {
+                warningBadge.style.display = hasWarning ? DisplayStyle.Flex : DisplayStyle.None;
+                warningBadge.text = isGhost ? "⚠ INVISIBLE HITBOX" : "ℹ ZERO SIZE";
+            }
+
+            var logBox = row.Q("inline-log-box");
+            var logLbl = row.Q<Label>("inline-log-text");
+            if (logBox != null && logLbl != null)
+            {
+                if (isGhost)
+                {
+                    logBox.style.display = DisplayStyle.Flex;
+                    logLbl.text = (entry.EffectiveAlpha <= 0f)
+                        ? "• Alpha is 0 (invisible) but Raycast Target is enabled — intercepts clicks."
+                        : "• Image sprite is missing (null) while Raycast Target is enabled.";
+                }
+                else if (isZeroSize)
+                {
+                    logBox.style.display = DisplayStyle.Flex;
+                    logLbl.text = "• RectTransform width/height is near zero.";
+                }
+                else
+                {
+                    logBox.style.display = DisplayStyle.None;
+                }
+            }
 
             // Wire button callbacks
             var eyeBtn = row.Q<Button>("eye");
