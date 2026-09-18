@@ -1,0 +1,18 @@
+{
+  "name": "UIDepthInspector.Editor",
+  "rootNamespace": "UIDepthInspector.Editor",
+  "references": [
+    "UnityEngine.UI"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

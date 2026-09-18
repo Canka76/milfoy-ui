@@ -1,0 +1,2173 @@
+diff --git a/.editorconfig b/.editorconfig
+new file mode 100644
+index 0000000..c1b24b5
+--- /dev/null
++++ b/.editorconfig
+@@ -0,0 +1,18 @@
++root = true
++
++[*]
++charset = utf-8
++end_of_line = lf
++insert_final_newline = true
++trim_trailing_whitespace = true
++
++[*.cs]
++indent_style = space
++indent_size = 4
++
++[*.{json,yaml,yml,uxml,uss}]
++indent_style = space
++indent_size = 2
++
++[*.md]
++trim_trailing_whitespace = false
+diff --git a/.gitattributes b/.gitattributes
+new file mode 100644
+index 0000000..765f8cd
+--- /dev/null
++++ b/.gitattributes
+@@ -0,0 +1,21 @@
++# Force LF on all text files regardless of contributor OS
++* text=auto eol=lf
++
++*.cs      text eol=lf
++*.json    text eol=lf
++*.yaml    text eol=lf
++*.yml     text eol=lf
++*.md      text eol=lf
++*.shader  text eol=lf
++*.uxml    text eol=lf
++*.uss     text eol=lf
++*.asmdef  text eol=lf
++
++# Unity binary formats — no line-ending conversion
++*.png     binary
++*.jpg     binary
++*.psd     binary
++*.asset   -text
++*.meta    -text
++*.prefab  -text
++*.unity   -text
+diff --git a/.github/PULL_REQUEST_TEMPLATE.md b/.github/PULL_REQUEST_TEMPLATE.md
+new file mode 100644
+index 0000000..e7408df
+--- /dev/null
++++ b/.github/PULL_REQUEST_TEMPLATE.md
+@@ -0,0 +1,11 @@
++## What does this PR do?
++<!-- One sentence. -->
++
++## Linked issue
++Closes #
++
++## Checklist
++- [ ] Commits follow Conventional Commits format (`feat:`, `fix:`, `docs:`, etc.)
++- [ ] Tested in Unity 6 (6000.0.x) — Edit Mode and/or Play Mode as applicable
++- [ ] No new compiler warnings introduced
++- [ ] `CHANGELOG.md` NOT manually edited — release-please manages it automatically
+diff --git a/.github/workflows/commitlint.yml b/.github/workflows/commitlint.yml
+new file mode 100644
+index 0000000..6b93d03
+--- /dev/null
++++ b/.github/workflows/commitlint.yml
+@@ -0,0 +1,31 @@
++name: commitlint
++
++on:
++  pull_request:
++    types: [opened, synchronize, reopened]
++
++jobs:
++  commitlint:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++
++      - uses: actions/setup-node@v4
++        with:
++          node-version: lts/*
++
++      - name: Install commitlint
++        run: npm install --save-dev @commitlint/cli @commitlint/config-conventional
++
++      - name: Create commitlint config
++        run: echo "module.exports = { extends: ['@commitlint/config-conventional'] };" > commitlint.config.js
++
++      - name: Lint commits
++        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
++
++      - name: Lint PR title
++        env:
++          PR_TITLE: ${{ github.event.pull_request.title }}
++        run: echo "$PR_TITLE" | npx commitlint --verbose
+diff --git a/.github/workflows/release-please.yml b/.github/workflows/release-please.yml
+new file mode 100644
+index 0000000..2edbb2f
+--- /dev/null
++++ b/.github/workflows/release-please.yml
+@@ -0,0 +1,18 @@
++name: release-please
++
++on:
++  push:
++    branches:
++      - main
++
++permissions:
++  contents: write
++  pull-requests: write
++
++jobs:
++  release-please:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: google-github-actions/release-please-action@v4
++        with:
++          token: ${{ secrets.GITHUB_TOKEN }}
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..7b1b6b3
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,28 @@
++# Unity project artifacts (test project alongside the package)
++[Ll]ibrary/
++[Tt]emp/
++[Oo]bj/
++[Bb]uild/
++[Bb]uilds/
++[Ll]ogs/
++[Uu]ser[Ss]ettings/
++
++# IDE
++.idea/
++.vs/
++*.csproj
++*.sln
++*.user
++*.suo
++*.userprefs
++
++# OS
++.DS_Store
++.DS_Store?
++Thumbs.db
++ehthumbs.db
++
++# Node (if commitlint run locally by a contributor)
++node_modules/
++commitlint.config.js
++package-lock.json
+diff --git a/.release-please-manifest.json b/.release-please-manifest.json
+new file mode 100644
+index 0000000..466df71
+--- /dev/null
++++ b/.release-please-manifest.json
+@@ -0,0 +1,3 @@
++{
++  ".": "0.1.0"
++}
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+new file mode 100644
+index 0000000..f6b7d6b
+--- /dev/null
++++ b/CHANGELOG.md
+@@ -0,0 +1,8 @@
++# Changelog
++
++All notable changes to this project will be documented in this file.
++
++The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
++This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
++
++<!-- AUTOMATICALLY MANAGED BY release-please. DO NOT EDIT MANUALLY. -->
+diff --git a/CONTRIBUTING.md b/CONTRIBUTING.md
+new file mode 100644
+index 0000000..46f31a6
+--- /dev/null
++++ b/CONTRIBUTING.md
+@@ -0,0 +1,80 @@
++# Contributing to UI Depth Inspector
++
++Thank you for considering a contribution!
++
++## Quick Start
++
++1. Fork this repository.
++2. Create a branch from `main`: `feat/your-feature-name`.
++3. Make your changes with atomic commits.
++4. Open a Pull Request against `main`.
++
++## Commit Rules
++
++This project uses [Conventional Commits](https://www.conventionalcommits.org/). Every commit message must follow this format:
++
++```
++<type>(<optional scope>): <description>
++```
++
++### Allowed Types
++
++| Type | Use for |
++|------|---------|
++| `feat` | New feature visible to users |
++| `fix` | Bug fix |
++| `docs` | README, CONTRIBUTING, XML doc comments |
++| `refactor` | Internal restructure, no behavior change |
++| `perf` | Performance improvement |
++| `test` | Adding or fixing tests |
++| `chore` | Tooling, CI, build scripts, dependency bumps |
++| `style` | Formatting only |
++
++### Rules
++
++- **Imperative mood**, ≤72 characters, no trailing period.
++  - ✓ `feat: add World Space canvas support`
++  - ✗ `Added world space canvas support.`
++- **Atomic commits:** one logical change per commit. A PR fixing a bug AND adding a feature needs at least two commits.
++- **Scope** (optional): subsystem in parentheses — `fix(viewport): orbit camera jitter`.
++
++### Breaking Changes
++
++Append `!` after type and add a `BREAKING CHANGE:` footer:
++
++```
++feat!: rename UIElementEntry.worldRect to boundsRect
++
++BREAKING CHANGE: worldRect has been renamed to boundsRect for clarity.
++```
++
++## Branch Naming
++
++Format: `<type>/<short-description>` (kebab-case).
++
++- `feat/world-space-canvas`
++- `fix/ghost-blocker-alpha-calc`
++- `docs/contributing-guide`
++
++## PR Process
++
++- Open an issue first for non-trivial features.
++- Link the issue in your PR: `Closes #N`.
++- CI must pass (commitlint checks commit messages).
++
++## Unity Version
++
++Test against **Unity 6 (6000.0.x)** minimum. Note your exact Unity version in the PR description.
++
++## What NOT To Do
++
++- **Do not** manually edit `CHANGELOG.md` — release-please manages it.
++- **Do not** manually bump `version` in `package.json` — release-please handles it.
++
++## Local Development
++
++Install the package in a test project via local path override in `Packages/manifest.json`:
++
++```json
++"com.openupm.ui-depth-inspector": "file:../../path/to/ui-depth-inspector"
++```
+diff --git a/Editor/Core/UIElementEntry.cs b/Editor/Core/UIElementEntry.cs
+new file mode 100644
+index 0000000..e2fd6c7
+--- /dev/null
++++ b/Editor/Core/UIElementEntry.cs
+@@ -0,0 +1,36 @@
++using System;
++using UnityEngine;
++
++namespace UIDepthInspector.Editor.Core
++{
++    [Flags]
++    public enum DiagnosticFlags
++    {
++        None             = 0,
++        RaycastBlocker   = 1 << 0,
++        GhostBlocker     = 1 << 1,
++        PassiveVisual    = 1 << 2,
++        Inactive         = 1 << 3,
++        GroupBlocked     = 1 << 4,
++        GroupTransparent = 1 << 5,
++        HasMask          = 1 << 6,
++        HasRectMask2D    = 1 << 7,
++        ZeroSize         = 1 << 8,
++    }
++
++    public struct UIElementEntry
++    {
++        public int GlobalDrawIndex;
++        public string Name;
++        public bool IsActive;
++        public bool RaycastTarget;
++        public float EffectiveAlpha;
++        public bool BlocksRaycasts;
++        public Rect WorldRect;
++        public RenderMode CanvasRenderMode;
++        public int RootCanvasId;
++        public string RootCanvasName;
++        public DiagnosticFlags Flags;
++        public Transform Transform;
++    }
++}
+diff --git a/Editor/Core/UIRenderTreeCache.cs b/Editor/Core/UIRenderTreeCache.cs
+new file mode 100644
+index 0000000..af73ce9
+--- /dev/null
++++ b/Editor/Core/UIRenderTreeCache.cs
+@@ -0,0 +1,48 @@
++using System.Collections.Generic;
++using UnityEditor;
++
++namespace UIDepthInspector.Editor.Core
++{
++    public class UIRenderTreeCache
++    {
++        List<UIElementEntry> _entries = new();
++        int _generation;
++        bool _dirty = true;
++
++        public IReadOnlyList<UIElementEntry> Entries
++        {
++            get
++            {
++                if (_dirty)
++                    Rebuild();
++                return _entries;
++            }
++        }
++
++        public int Generation => _generation;
++
++        public UIRenderTreeCache()
++        {
++            EditorApplication.hierarchyChanged += Invalidate;
++            Undo.undoRedoPerformed += Invalidate;
++        }
++
++        public void Dispose()
++        {
++            EditorApplication.hierarchyChanged -= Invalidate;
++            Undo.undoRedoPerformed -= Invalidate;
++        }
++
++        public void Invalidate()
++        {
++            _dirty = true;
++        }
++
++        void Rebuild()
++        {
++            _entries = UIRenderTreeCollector.Collect();
++            _generation++;
++            _dirty = false;
++        }
++    }
++}
+diff --git a/Editor/Core/UIRenderTreeCollector.cs b/Editor/Core/UIRenderTreeCollector.cs
+new file mode 100644
+index 0000000..ac077b7
+--- /dev/null
++++ b/Editor/Core/UIRenderTreeCollector.cs
+@@ -0,0 +1,194 @@
++using System.Collections.Generic;
++using UnityEngine;
++using UnityEngine.UI;
++
++namespace UIDepthInspector.Editor.Core
++{
++    public static class UIRenderTreeCollector
++    {
++        // Reusable lists — no per-call allocation
++        static readonly List<Canvas> s_RootCanvases = new();
++        static readonly List<UIElementEntry> s_Result = new();
++        static readonly List<(int sortKey, int sortOrder, Canvas canvas)> s_SortedRoots = new();
++        static readonly List<(int sortKey, int sortOrder, Transform root, int insertIndex)> s_DeferredSubtrees = new();
++
++        /// <summary>
++        /// Collect from all loaded scenes.
++        /// </summary>
++        public static List<UIElementEntry> Collect()
++        {
++            s_Result.Clear();
++            s_RootCanvases.Clear();
++            s_SortedRoots.Clear();
++            s_DeferredSubtrees.Clear();
++
++            // Gather root canvases from all loaded scenes
++            var allCanvases = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
++            foreach (var c in allCanvases)
++            {
++                if (c.isRootCanvas)
++                    s_RootCanvases.Add(c);
++            }
++
++            // Sort by sorting layer value, then sorting order
++            s_SortedRoots.Clear();
++            foreach (var c in s_RootCanvases)
++            {
++                int layerValue = SortingLayer.GetLayerValueFromID(c.sortingLayerID);
++                s_SortedRoots.Add((layerValue, c.sortingOrder, c));
++            }
++            s_SortedRoots.Sort((a, b) =>
++            {
++                int cmp = a.sortKey.CompareTo(b.sortKey);
++                return cmp != 0 ? cmp : a.sortOrder.CompareTo(b.sortOrder);
++            });
++
++            int globalIndex = 0;
++
++            foreach (var (_, _, rootCanvas) in s_SortedRoots)
++            {
++                TraverseCanvas(rootCanvas.transform, rootCanvas, 1f, true, ref globalIndex);
++            }
++
++            // Handle deferred override-sorting subtrees
++            if (s_DeferredSubtrees.Count > 0)
++            {
++                // Sort deferred subtrees by their sort keys
++                s_DeferredSubtrees.Sort((a, b) =>
++                {
++                    int cmp = a.sortKey.CompareTo(b.sortKey);
++                    return cmp != 0 ? cmp : a.sortOrder.CompareTo(b.sortOrder);
++                });
++
++                // Collect deferred entries into a temp list, then merge
++                var deferredEntries = new List<UIElementEntry>();
++                foreach (var (_, _, root, _) in s_DeferredSubtrees)
++                {
++                    var nestedCanvas = root.GetComponent<Canvas>();
++                    float parentAlpha = GetCumulativeCanvasGroupAlpha(root.parent);
++                    bool parentBlocksRaycasts = GetCumulativeBlocksRaycasts(root.parent);
++                    int tempIndex = globalIndex;
++                    int countBefore = s_Result.Count;
++
++                    TraverseCanvas(root, nestedCanvas != null ? nestedCanvas : root.GetComponentInParent<Canvas>(),
++                        parentAlpha, parentBlocksRaycasts, ref tempIndex);
++
++                    // Move newly added entries to deferred list
++                    for (int i = countBefore; i < s_Result.Count; i++)
++                        deferredEntries.Add(s_Result[i]);
++                    s_Result.RemoveRange(countBefore, s_Result.Count - countBefore);
++
++                    globalIndex = tempIndex;
++                }
++
++                // Append deferred entries (already in sort order)
++                s_Result.AddRange(deferredEntries);
++            }
++
++            // Re-index all entries with final global draw order
++            for (int i = 0; i < s_Result.Count; i++)
++            {
++                var entry = s_Result[i];
++                entry.GlobalDrawIndex = i;
++                s_Result[i] = entry;
++            }
++
++            return s_Result;
++        }
++
++        static void TraverseCanvas(Transform root, Canvas rootCanvas,
++            float parentAlpha, bool parentBlocksRaycasts, ref int globalIndex)
++        {
++            TraverseRecursive(root, rootCanvas, parentAlpha, parentBlocksRaycasts, ref globalIndex);
++        }
++
++        static void TraverseRecursive(Transform current, Canvas rootCanvas,
++            float cumulativeAlpha, bool cumulativeBlocksRaycasts, ref int globalIndex)
++        {
++            // Check for CanvasGroup on this node
++            if (current.TryGetComponent<CanvasGroup>(out var group))
++            {
++                cumulativeAlpha *= group.alpha;
++                cumulativeBlocksRaycasts = cumulativeBlocksRaycasts && group.blocksRaycasts;
++            }
++
++            // Check for nested Canvas with overrideSorting — defer it
++            if (current != rootCanvas.transform && current.TryGetComponent<Canvas>(out var nestedCanvas))
++            {
++                if (nestedCanvas.overrideSorting)
++                {
++                    int layerValue = SortingLayer.GetLayerValueFromID(nestedCanvas.sortingLayerID);
++                    s_DeferredSubtrees.Add((layerValue, nestedCanvas.sortingOrder, current, s_Result.Count));
++                    return; // Skip this subtree for now
++                }
++            }
++
++            // Emit entry for any Graphic on this node
++            if (current.TryGetComponent<Graphic>(out var graphic))
++            {
++                var rt = current as RectTransform ?? current.GetComponent<RectTransform>();
++                Rect worldRect = Rect.zero;
++                if (rt != null)
++                {
++                    var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(rt);
++                    var center = rt.TransformPoint(bounds.center);
++                    worldRect = new Rect(
++                        center.x - bounds.extents.x,
++                        center.y - bounds.extents.y,
++                        bounds.size.x,
++                        bounds.size.y
++                    );
++                }
++
++                float effectiveAlpha = graphic.color.a * cumulativeAlpha;
++
++                s_Result.Add(new UIElementEntry
++                {
++                    GlobalDrawIndex = globalIndex++,
++                    Name = current.gameObject.name,
++                    IsActive = current.gameObject.activeInHierarchy,
++                    RaycastTarget = graphic.raycastTarget,
++                    EffectiveAlpha = effectiveAlpha,
++                    BlocksRaycasts = cumulativeBlocksRaycasts,
++                    WorldRect = worldRect,
++                    CanvasRenderMode = rootCanvas.renderMode,
++                    RootCanvasId = rootCanvas.GetInstanceID(),
++                    RootCanvasName = rootCanvas.gameObject.name,
++                    Flags = DiagnosticFlags.None, // computed by UIDiagnosticAnalyzer
++                    Transform = current,
++                });
++            }
++
++            // Recurse children in sibling order
++            for (int i = 0; i < current.childCount; i++)
++            {
++                TraverseRecursive(current.GetChild(i), rootCanvas,
++                    cumulativeAlpha, cumulativeBlocksRaycasts, ref globalIndex);
++            }
++        }
++
++        static float GetCumulativeCanvasGroupAlpha(Transform t)
++        {
++            float alpha = 1f;
++            while (t != null)
++            {
++                if (t.TryGetComponent<CanvasGroup>(out var cg))
++                    alpha *= cg.alpha;
++                t = t.parent;
++            }
++            return alpha;
++        }
++
++        static bool GetCumulativeBlocksRaycasts(Transform t)
++        {
++            bool blocks = true;
++            while (t != null)
++            {
++                if (t.TryGetComponent<CanvasGroup>(out var cg))
++                    blocks = blocks && cg.blocksRaycasts;
++                t = t.parent;
++            }
++            return blocks;
++        }
++    }
++}
+diff --git a/Editor/Diagnostics/UIDiagnosticAnalyzer.cs b/Editor/Diagnostics/UIDiagnosticAnalyzer.cs
+new file mode 100644
+index 0000000..d4f7491
+--- /dev/null
++++ b/Editor/Diagnostics/UIDiagnosticAnalyzer.cs
+@@ -0,0 +1,83 @@
++using System.Collections.Generic;
++using UnityEngine;
++using UnityEngine.UI;
++
++namespace UIDepthInspector.Editor.Diagnostics
++{
++    using Core;
++
++    public static class UIDiagnosticAnalyzer
++    {
++        public static void Analyze(List<UIElementEntry> entries)
++        {
++            for (int i = 0; i < entries.Count; i++)
++            {
++                var entry = entries[i];
++                entry.Flags = ComputeFlags(entry);
++                entries[i] = entry;
++            }
++        }
++
++        static DiagnosticFlags ComputeFlags(UIElementEntry entry)
++        {
++            var flags = DiagnosticFlags.None;
++
++            if (!entry.IsActive)
++            {
++                flags |= DiagnosticFlags.Inactive;
++                return flags;
++            }
++
++            // Zero-size check
++            if (entry.WorldRect.width < 0.01f || entry.WorldRect.height < 0.01f)
++                flags |= DiagnosticFlags.ZeroSize;
++
++            // CanvasGroup overrides
++            if (!entry.BlocksRaycasts)
++            {
++                flags |= DiagnosticFlags.GroupBlocked;
++                flags |= DiagnosticFlags.PassiveVisual;
++                return flags;
++            }
++
++            // Ghost blocker: raycastTarget ON but effectively invisible
++            if (entry.RaycastTarget)
++            {
++                bool isGhost = false;
++
++                // Alpha zero (direct or via CanvasGroup)
++                if (entry.EffectiveAlpha <= 0f)
++                    isGhost = true;
++
++                // Missing sprite on an Image component
++                if (!isGhost && entry.Transform != null &&
++                    entry.Transform.TryGetComponent<Image>(out var img) && img.sprite == null)
++                    isGhost = true;
++
++                // CanvasGroup making it transparent while still blocking
++                if (entry.EffectiveAlpha <= 0f && entry.BlocksRaycasts)
++                    flags |= DiagnosticFlags.GroupTransparent;
++
++                if (isGhost)
++                    flags |= DiagnosticFlags.GhostBlocker;
++                else
++                    flags |= DiagnosticFlags.RaycastBlocker;
++            }
++            else
++            {
++                flags |= DiagnosticFlags.PassiveVisual;
++            }
++
++            // Mask components
++            if (entry.Transform != null)
++            {
++                if (entry.Transform.TryGetComponent<Mask>(out _))
++                    flags |= DiagnosticFlags.HasMask;
++                if (entry.Transform.TryGetComponent<RectMask2D>(out _))
++                    flags |= DiagnosticFlags.HasRectMask2D;
++            }
++
++            return flags;
++        }
++    }
++}
+diff --git a/Editor/Diagnostics/UIDiagnosticBadges.cs b/Editor/Diagnostics/UIDiagnosticBadges.cs
+new file mode 100644
+index 0000000..b944655
+--- /dev/null
++++ b/Editor/Diagnostics/UIDiagnosticBadges.cs
+@@ -0,0 +1,31 @@
++using UnityEngine.UIElements;
++
++namespace UIDepthInspector.Editor.Diagnostics
++{
++    using Core;
++
++    public static class UIDiagnosticBadges
++    {
++        public static VisualElement CreateDot(DiagnosticFlags flags)
++        {
++            var dot = new VisualElement();
++            dot.AddToClassList("stack-dot");
++
++            if ((flags & DiagnosticFlags.Inactive) != 0)
++                dot.AddToClassList("stack-dot--inactive");
++            else if ((flags & DiagnosticFlags.GhostBlocker) != 0)
++                dot.AddToClassList("stack-dot--ghost");
++            else if ((flags & DiagnosticFlags.RaycastBlocker) != 0)
++                dot.AddToClassList("stack-dot--raycast");
++            else
++                dot.AddToClassList("stack-dot--passive");
++
++            return dot;
++        }
++
++        public static Label CreateWarningBadge()
++        {
++            return new Label("⚠ Invisible Hitbox") { pickingMode = PickingMode.Ignore };
++        }
++    }
++}
+diff --git a/Editor/Panels/UIStackListPanel.cs b/Editor/Panels/UIStackListPanel.cs
+new file mode 100644
+index 0000000..652eb67
+--- /dev/null
++++ b/Editor/Panels/UIStackListPanel.cs
+@@ -0,0 +1,175 @@
++using System;
++using System.Collections.Generic;
++using UnityEditor;
++using UnityEngine;
++using UnityEngine.UIElements;
++
++namespace UIDepthInspector.Editor.Panels
++{
++    using Core;
++    using Diagnostics;
++
++    public class UIStackListPanel
++    {
++        public Action<UIElementEntry> OnEntryClicked;
++        public Action<UIElementEntry> OnActiveToggled;
++        public Action<UIElementEntry> OnRaycastToggled;
++        public Action<UIElementEntry> OnSoloToggled;
++
++        ListView _listView;
++        Button _copyBtn;
++        List<UIElementEntry> _filteredEntries = new();
++        IReadOnlyList<UIElementEntry> _allEntries;
++        int _selectedGlobalIndex = -1;
++
++        public void Bind(VisualElement root)
++        {
++            _listView = root.Q<ListView>("stack-list");
++            _listView.makeItem = MakeRow;
++            _listView.bindItem = BindRow;
++            _listView.selectionType = SelectionType.Single;
++            _listView.itemsSource = _filteredEntries;
++            _listView.fixedItemHeight = 26;
++
++            _listView.selectionChanged += selection =>
++            {
++                foreach (var item in selection)
++                {
++                    if (item is UIElementEntry entry)
++                        OnEntryClicked?.Invoke(entry);
++                }
++            };
++
++            _copyBtn = root.Q<Button>("btn-copy-stack");
++            _copyBtn.clicked += CopyStackToClipboard;
++        }
++
++        public void SetEntries(IReadOnlyList<UIElementEntry> entries, UIToolbarPanel toolbar)
++        {
++            _allEntries = entries;
++            ApplyFilters(toolbar);
++        }
++
++        public void ApplyFilters(UIToolbarPanel toolbar)
++        {
++            _filteredEntries.Clear();
++
++            if (_allEntries == null) return;
++
++            foreach (var e in _allEntries)
++            {
++                if (toolbar.ActiveOnly && !e.IsActive) continue;
++                if (toolbar.RaycastOnly && !e.RaycastTarget) continue;
++                if (toolbar.WarningsOnly && (e.Flags & DiagnosticFlags.GhostBlocker) == 0) continue;
++                if (toolbar.CanvasFilterId >= 0 && e.RootCanvasId != toolbar.CanvasFilterId) continue;
++                if (!string.IsNullOrEmpty(toolbar.SearchQuery) &&
++                    e.Name.IndexOf(toolbar.SearchQuery, StringComparison.OrdinalIgnoreCase) < 0) continue;
++
++                _filteredEntries.Add(e);
++            }
++
++            _listView.itemsSource = _filteredEntries;
++            _listView.Rebuild();
++        }
++
++        public void SelectEntry(int globalDrawIndex)
++        {
++            _selectedGlobalIndex = globalDrawIndex;
++            for (int i = 0; i < _filteredEntries.Count; i++)
++            {
++                if (_filteredEntries[i].GlobalDrawIndex == globalDrawIndex)
++                {
++                    _listView.SetSelectionWithoutNotify(new[] { i });
++                    _listView.ScrollToItem(i);
++                    return;
++                }
++            }
++        }
++
++        VisualElement MakeRow()
++        {
++            var row = new VisualElement();
++            row.AddToClassList("stack-row");
++
++            row.Add(new Label { name = "index", pickingMode = PickingMode.Ignore });
++            row.Add(new VisualElement { name = "dot" });
++            row.Add(new Label { name = "name", pickingMode = PickingMode.Ignore });
++            row.Add(new Label { name = "warning", pickingMode = PickingMode.Ignore });
++
++            var eyeBtn = new Button { name = "eye", text = "👁" };
++            eyeBtn.AddToClassList("row-btn");
++            row.Add(eyeBtn);
++
++            var rayBtn = new Button { name = "ray", text = "◎" };
++            rayBtn.AddToClassList("row-btn");
++            row.Add(rayBtn);
++
++            var soloBtn = new Button { name = "solo", text = "S" };
++            soloBtn.AddToClassList("row-btn");
++            row.Add(soloBtn);
++
++            return row;
++        }
++
++        void BindRow(VisualElement row, int index)
++        {
++            if (index < 0 || index >= _filteredEntries.Count) return;
++            var entry = _filteredEntries[index];
++
++            var indexLabel = row.Q<Label>("index");
++            indexLabel.AddToClassList("stack-index");
++            indexLabel.text = $"#{entry.GlobalDrawIndex:D2}";
++
++            // Replace dot
++            var oldDot = row.Q("dot");
++            var newDot = UIDiagnosticBadges.CreateDot(entry.Flags);
++            newDot.name = "dot";
++            row.Insert(row.IndexOf(oldDot), newDot);
++            oldDot.RemoveFromHierarchy();
++
++            var nameLabel = row.Q<Label>("name");
++            nameLabel.AddToClassList("stack-name");
++            nameLabel.text = entry.Name;
++            nameLabel.EnableInClassList("stack-name--inactive", !entry.IsActive);
++
++            var warningLabel = row.Q<Label>("warning");
++            warningLabel.AddToClassList("warning-badge");
++            bool isGhost = (entry.Flags & DiagnosticFlags.GhostBlocker) != 0;
++            warningLabel.text = isGhost ? "⚠ Invisible Hitbox" : "";
++            warningLabel.style.display = isGhost ? DisplayStyle.Flex : DisplayStyle.None;
++
++            // Wire button callbacks
++            var eyeBtn = row.Q<Button>("eye");
++            eyeBtn.clickable = new Clickable(() => OnActiveToggled?.Invoke(entry));
++
++            var rayBtn = row.Q<Button>("ray");
++            rayBtn.clickable = new Clickable(() => OnRaycastToggled?.Invoke(entry));
++
++            var soloBtn = row.Q<Button>("solo");
++            soloBtn.clickable = new Clickable(() => OnSoloToggled?.Invoke(entry));
++        }
++
++        void CopyStackToClipboard()
++        {
++            if (_filteredEntries.Count == 0) return;
++
++            var sb = new System.Text.StringBuilder();
++            string canvasName = _filteredEntries[0].RootCanvasName;
++            sb.AppendLine($"UI Depth Inspector — {canvasName} — {_filteredEntries.Count} elements");
++
++            foreach (var e in _filteredEntries)
++            {
++                string raycast = e.RaycastTarget ? "ON" : "OFF";
++                string line = $"#{e.GlobalDrawIndex:D2}  {e.Name,-24} Raycast:{raycast}  Alpha:{e.EffectiveAlpha:F1}";
++
++                if ((e.Flags & DiagnosticFlags.GhostBlocker) != 0)
++                    line += "  ⚠ INVISIBLE HITBOX";
++
++                sb.AppendLine(line);
++            }
++
++            EditorGUIUtility.systemCopyBuffer = sb.ToString();
++            Debug.Log("Stack copied to clipboard.");
++        }
++    }
++}
+diff --git a/Editor/Panels/UIToolbarPanel.cs b/Editor/Panels/UIToolbarPanel.cs
+new file mode 100644
+index 0000000..d20c7fc
+--- /dev/null
++++ b/Editor/Panels/UIToolbarPanel.cs
+@@ -0,0 +1,107 @@
++using System;
++using System.Collections.Generic;
++using System.Linq;
++using UnityEngine.UIElements;
++
++namespace UIDepthInspector.Editor.Panels
++{
++    using Core;
++    using Viewport;
++
++    public class UIToolbarPanel
++    {
++        public Action<ViewPreset> OnViewPresetChanged;
++        public Action<float> OnExplosionChanged;
++        public Action OnFilterChanged;
++
++        public string SearchQuery { get; private set; } = "";
++        public bool RaycastOnly { get; private set; }
++        public bool WarningsOnly { get; private set; }
++        public bool ActiveOnly { get; private set; }
++        public int CanvasFilterId { get; private set; } = -1; // -1 = All
++
++        Slider _slider;
++        FloatField _floatField;
++        DropdownField _canvasDropdown;
++        readonly List<(int id, string name)> _canvasOptions = new();
++
++        public void Bind(VisualElement root)
++        {
++            root.Q<Button>("btn-front").clicked += () => OnViewPresetChanged?.Invoke(ViewPreset.Front);
++            root.Q<Button>("btn-iso").clicked += () => OnViewPresetChanged?.Invoke(ViewPreset.Isometric);
++            root.Q<Button>("btn-side").clicked += () => OnViewPresetChanged?.Invoke(ViewPreset.Side);
++
++            _slider = root.Q<Slider>("slider-explosion");
++            _floatField = root.Q<FloatField>("field-explosion");
++
++            _slider.RegisterValueChangedCallback(evt =>
++            {
++                _floatField.SetValueWithoutNotify(evt.newValue);
++                OnExplosionChanged?.Invoke(evt.newValue);
++            });
++
++            _floatField.RegisterValueChangedCallback(evt =>
++            {
++                float clamped = UnityEngine.Mathf.Clamp(evt.newValue, 0f, 50f);
++                _slider.SetValueWithoutNotify(clamped);
++                _floatField.SetValueWithoutNotify(clamped);
++                OnExplosionChanged?.Invoke(clamped);
++            });
++
++            root.Q<TextField>("search-field").RegisterValueChangedCallback(evt =>
++            {
++                SearchQuery = evt.newValue ?? "";
++                OnFilterChanged?.Invoke();
++            });
++
++            root.Q<Toggle>("toggle-raycast").RegisterValueChangedCallback(evt =>
++            {
++                RaycastOnly = evt.newValue;
++                OnFilterChanged?.Invoke();
++            });
++
++            root.Q<Toggle>("toggle-warnings").RegisterValueChangedCallback(evt =>
++            {
++                WarningsOnly = evt.newValue;
++                OnFilterChanged?.Invoke();
++            });
++
++            root.Q<Toggle>("toggle-active").RegisterValueChangedCallback(evt =>
++            {
++                ActiveOnly = evt.newValue;
++                OnFilterChanged?.Invoke();
++            });
++
++            _canvasDropdown = root.Q<DropdownField>("canvas-filter");
++            _canvasDropdown.RegisterValueChangedCallback(evt =>
++            {
++                if (evt.newValue == "All")
++                    CanvasFilterId = -1;
++                else
++                {
++                    var match = _canvasOptions.FirstOrDefault(c => c.name == evt.newValue);
++                    CanvasFilterId = match.id;
++                }
++                OnFilterChanged?.Invoke();
++            });
++        }
++
++        public void PopulateCanvasDropdown(IReadOnlyList<UIElementEntry> entries)
++        {
++            _canvasOptions.Clear();
++            var seen = new HashSet<int>();
++
++            foreach (var e in entries)
++            {
++                if (seen.Add(e.RootCanvasId))
++                    _canvasOptions.Add((e.RootCanvasId, e.RootCanvasName));
++            }
++
++            var choices = new List<string> { "All" };
++            choices.AddRange(_canvasOptions.Select(c => c.name));
++            _canvasDropdown.choices = choices;
++            _canvasDropdown.SetValueWithoutNotify("All");
++            CanvasFilterId = -1;
++        }
++    }
++}
+diff --git a/Editor/Resources/Shaders/UIQuadDiagnostic.shader b/Editor/Resources/Shaders/UIQuadDiagnostic.shader
+new file mode 100644
+index 0000000..b2cfaab
+--- /dev/null
++++ b/Editor/Resources/Shaders/UIQuadDiagnostic.shader
+@@ -0,0 +1,67 @@
++Shader "Hidden/UIDepthInspector/QuadDiagnostic"
++{
++    Properties
++    {
++        _Color ("Color", Color) = (1,1,1,0.7)
++        _DiagnosticMode ("Diagnostic Mode", Float) = 0
++        // 0 = solid, 1 = amber diagonal stripes
++    }
++
++    SubShader
++    {
++        Tags { "Queue"="Transparent" "RenderType"="Transparent" }
++        LOD 100
++
++        Blend SrcAlpha OneMinusSrcAlpha
++        ZWrite Off
++        Cull Off
++
++        Pass
++        {
++            CGPROGRAM
++            #pragma vertex vert
++            #pragma fragment frag
++
++            struct appdata
++            {
++                float4 vertex : POSITION;
++                float2 uv : TEXCOORD0;
++            };
++
++            struct v2f
++            {
++                float4 pos : SV_POSITION;
++                float2 uv : TEXCOORD0;
++            };
++
++            float4 _Color;
++            float _DiagnosticMode;
++
++            v2f vert(appdata v)
++            {
++                v2f o;
++                o.pos = UnityObjectToClipPos(v.vertex);
++                o.uv = v.uv;
++                return o;
++            }
++
++            fixed4 frag(v2f i) : SV_Target
++            {
++                fixed4 col = _Color;
++
++                // Stripe mode: diagonal amber stripes
++                if (_DiagnosticMode > 0.5)
++                {
++                    float stripe = frac((i.uv.x + i.uv.y) * 8.0);
++                    if (stripe > 0.5)
++                        col.a *= 0.3;
++                    else
++                        col = fixed4(1.0, 0.75, 0.2, 0.85); // amber
++                }
++
++                return col;
++            }
++            ENDCG
++        }
++    }
++}
+diff --git a/Editor/Resources/UIDepthInspector.uss b/Editor/Resources/UIDepthInspector.uss
+new file mode 100644
+index 0000000..bea43d2
+--- /dev/null
++++ b/Editor/Resources/UIDepthInspector.uss
+@@ -0,0 +1,164 @@
++.root {
++    flex-grow: 1;
++    flex-direction: column;
++}
++
++.toolbar {
++    padding: 4px;
++    background-color: #383838;
++    border-bottom-width: 1px;
++    border-bottom-color: #222;
++}
++
++.toolbar-row {
++    flex-direction: row;
++    align-items: center;
++    margin-bottom: 2px;
++}
++
++.preset-btn {
++    width: 50px;
++    margin-right: 2px;
++}
++
++.toolbar-separator {
++    width: 1px;
++    height: 18px;
++    background-color: #555;
++    margin-left: 6px;
++    margin-right: 6px;
++}
++
++.slider-label {
++    margin-right: 4px;
++    -unity-font-style: bold;
++    font-size: 11px;
++}
++
++.explosion-slider {
++    flex-grow: 1;
++    min-width: 100px;
++}
++
++.explosion-field {
++    width: 50px;
++    margin-left: 4px;
++}
++
++.search-field {
++    flex-grow: 1;
++    margin-right: 4px;
++}
++
++.search-field > .unity-text-field__input {
++    padding-left: 4px;
++}
++
++.filter-toggle {
++    margin-right: 6px;
++    font-size: 11px;
++}
++
++.viewport {
++    flex-grow: 1;
++    min-width: 200px;
++}
++
++.list-pane {
++    flex-direction: column;
++}
++
++.stack-list {
++    flex-grow: 1;
++}
++
++.list-footer {
++    flex-direction: row;
++    padding: 4px;
++    border-top-width: 1px;
++    border-top-color: #222;
++    align-items: center;
++}
++
++.canvas-dropdown {
++    flex-grow: 1;
++    margin-right: 4px;
++}
++
++.copy-btn {
++    width: 90px;
++}
++
++.status-bar {
++    padding: 2px 6px;
++    background-color: #2a2a2a;
++    font-size: 11px;
++    color: #aaa;
++    border-top-width: 1px;
++    border-top-color: #222;
++}
++
++/* Stack list row styles */
++.stack-row {
++    flex-direction: row;
++    align-items: center;
++    padding: 2px 4px;
++    border-bottom-width: 1px;
++    border-bottom-color: #333;
++}
++
++.stack-row:hover {
++    background-color: #3a3a3a;
++}
++
++.stack-row--selected {
++    background-color: #2c5d87;
++}
++
++.stack-index {
++    width: 32px;
++    font-size: 10px;
++    -unity-font-style: bold;
++    color: #888;
++    -unity-text-align: middle-right;
++    margin-right: 4px;
++}
++
++.stack-dot {
++    width: 10px;
++    height: 10px;
++    border-radius: 5px;
++    margin-right: 6px;
++}
++
++.stack-dot--raycast { background-color: #E06060; }
++.stack-dot--passive { background-color: #60A0E0; }
++.stack-dot--ghost   { background-color: #FFB030; }
++.stack-dot--inactive { background-color: #808080; }
++
++.stack-name {
++    flex-grow: 1;
++    font-size: 12px;
++    overflow: hidden;
++    text-overflow: ellipsis;
++}
++
++.stack-name--inactive {
++    color: #666;
++}
++
++.warning-badge {
++    font-size: 10px;
++    color: #FFB030;
++    margin-right: 4px;
++    -unity-font-style: bold;
++}
++
++.row-btn {
++    width: 22px;
++    height: 22px;
++    margin-left: 1px;
++    font-size: 12px;
++    padding: 0;
++    -unity-text-align: middle-center;
++}
+diff --git a/Editor/Resources/UIDepthInspector.uxml b/Editor/Resources/UIDepthInspector.uxml
+new file mode 100644
+index 0000000..dbb038b
+--- /dev/null
++++ b/Editor/Resources/UIDepthInspector.uxml
+@@ -0,0 +1,41 @@
++<?xml version="1.0" encoding="utf-8"?>
++<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
++    <ui:VisualElement name="root" class="root">
++        <!-- Toolbar -->
++        <ui:VisualElement name="toolbar" class="toolbar">
++            <ui:VisualElement class="toolbar-row">
++                <ui:Button name="btn-front" text="Front" class="preset-btn" />
++                <ui:Button name="btn-iso" text="Iso" class="preset-btn" />
++                <ui:Button name="btn-side" text="Side" class="preset-btn" />
++                <ui:VisualElement class="toolbar-separator" />
++                <ui:Label text="Z-Explosion:" class="slider-label" />
++                <ui:Slider name="slider-explosion" low-value="0" high-value="50" value="0" class="explosion-slider" />
++                <ui:FloatField name="field-explosion" value="0" class="explosion-field" />
++            </ui:VisualElement>
++            <ui:VisualElement class="toolbar-row">
++                <ui:TextField name="search-field" class="search-field" />
++                <ui:Toggle name="toggle-raycast" text="Raycast Only" class="filter-toggle" />
++                <ui:Toggle name="toggle-warnings" text="Warnings" class="filter-toggle" />
++                <ui:Toggle name="toggle-active" text="Active Only" class="filter-toggle" />
++            </ui:VisualElement>
++        </ui:VisualElement>
++
++        <!-- Main content split -->
++        <ui:TwoPaneSplitView name="split-view" fixed-pane-index="1" fixed-pane-initial-dimension="300" orientation="Horizontal">
++            <!-- Left: 3D Viewport (IMGUI) -->
++            <ui:IMGUIContainer name="viewport-container" class="viewport" />
++
++            <!-- Right: Stack list -->
++            <ui:VisualElement name="list-pane" class="list-pane">
++                <ui:ListView name="stack-list" class="stack-list" />
++                <ui:VisualElement class="list-footer">
++                    <ui:DropdownField name="canvas-filter" label="Canvas" class="canvas-dropdown" />
++                    <ui:Button name="btn-copy-stack" text="Copy Stack" class="copy-btn" />
++                </ui:VisualElement>
++            </ui:VisualElement>
++        </ui:TwoPaneSplitView>
++
++        <!-- Status bar -->
++        <ui:Label name="status-bar" text="No Canvas found" class="status-bar" />
++    </ui:VisualElement>
++</ui:UXML>
+diff --git a/Editor/UIDepthInspector.Editor.asmdef b/Editor/UIDepthInspector.Editor.asmdef
+new file mode 100644
+index 0000000..c38f6e0
+--- /dev/null
++++ b/Editor/UIDepthInspector.Editor.asmdef
+@@ -0,0 +1,18 @@
++{
++  "name": "UIDepthInspector.Editor",
++  "rootNamespace": "UIDepthInspector.Editor",
++  "references": [
++    "UnityEngine.UI"
++  ],
++  "includePlatforms": [
++    "Editor"
++  ],
++  "excludePlatforms": [],
++  "allowUnsafeCode": false,
++  "overrideReferences": false,
++  "precompiledReferences": [],
++  "autoReferenced": true,
++  "defineConstraints": [],
++  "versionDefines": [],
++  "noEngineReferences": false
++}
+diff --git a/Editor/UIDepthInspectorWindow.cs b/Editor/UIDepthInspectorWindow.cs
+new file mode 100644
+index 0000000..2a4831b
+--- /dev/null
++++ b/Editor/UIDepthInspectorWindow.cs
+@@ -0,0 +1,310 @@
++using System.Collections.Generic;
++using UnityEditor;
++using UnityEditor.ShortcutManagement;
++using UnityEngine;
++using UnityEngine.UI;
++using UnityEngine.UIElements;
++
++namespace UIDepthInspector.Editor
++{
++    using Core;
++    using Diagnostics;
++    using Panels;
++    using Viewport;
++
++    public class UIDepthInspectorWindow : EditorWindow
++    {
++        [MenuItem("Window/UI/UI Depth Inspector")]
++        public static void ShowWindow()
++        {
++            var wnd = GetWindow<UIDepthInspectorWindow>();
++            wnd.titleContent = new GUIContent("UI Depth Inspector");
++            wnd.minSize = new Vector2(600, 400);
++        }
++
++        UIRenderTreeCache _cache;
++        UIPreview3DViewport _viewport;
++        UIToolbarPanel _toolbar;
++        UIStackListPanel _listPanel;
++
++        int _lastCacheGeneration = -1;
++        bool _needsRepaint;
++
++        // Solo state
++        struct SoloState
++        {
++            public bool Active;
++            public Transform Parent;
++            public List<(GameObject go, bool wasActive)> Saved;
++        }
++        SoloState _solo;
++
++        void OnEnable()
++        {
++            _cache = new UIRenderTreeCache();
++            _viewport = new UIPreview3DViewport();
++            _viewport.Initialize();
++
++            // Load UXML
++            var visualTree = Resources.Load<VisualTreeAsset>("UIDepthInspector");
++            if (visualTree != null)
++                visualTree.CloneTree(rootVisualElement);
++
++            // Load USS
++            var stylesheet = Resources.Load<StyleSheet>("UIDepthInspector");
++            if (stylesheet != null)
++                rootVisualElement.styleSheets.Add(stylesheet);
++
++            // Setup toolbar
++            _toolbar = new UIToolbarPanel();
++            _toolbar.Bind(rootVisualElement);
++            _toolbar.OnViewPresetChanged += preset =>
++            {
++                _viewport.SetViewPreset(preset);
++                _needsRepaint = true;
++            };
++            _toolbar.OnExplosionChanged += factor =>
++            {
++                _viewport.SetExplosionFactor(factor);
++                _needsRepaint = true;
++            };
++            _toolbar.OnFilterChanged += () =>
++            {
++                _listPanel.ApplyFilters(_toolbar);
++                RebuildViewportFromFiltered();
++                _needsRepaint = true;
++            };
++
++            // Setup list
++            _listPanel = new UIStackListPanel();
++            _listPanel.Bind(rootVisualElement);
++            _listPanel.OnEntryClicked += entry =>
++            {
++                if (entry.Transform != null)
++                    Selection.activeGameObject = entry.Transform.gameObject;
++            };
++            _listPanel.OnActiveToggled += ToggleActive;
++            _listPanel.OnRaycastToggled += ToggleRaycast;
++            _listPanel.OnSoloToggled += ToggleSolo;
++
++            // Setup viewport IMGUI container
++            var viewportContainer = rootVisualElement.Q<IMGUIContainer>("viewport-container");
++            if (viewportContainer != null)
++            {
++                viewportContainer.onGUIHandler = () =>
++                {
++                    var rect = viewportContainer.contentRect;
++                    if (rect.width < 1 || rect.height < 1) return;
++
++                    var evt = Event.current;
++                    _viewport.HandleInput(evt, rect);
++
++                    // Left-click picking
++                    if (evt.type == EventType.MouseDown && evt.button == 0 && !evt.alt)
++                    {
++                        int picked = _viewport.GetPickedEntryIndex(evt.mousePosition, rect);
++                        if (picked >= 0)
++                        {
++                            var entries = _cache.Entries;
++                            if (picked < entries.Count && entries[picked].Transform != null)
++                                Selection.activeGameObject = entries[picked].Transform.gameObject;
++                            evt.Use();
++                        }
++                    }
++
++                    _viewport.OnGUI(rect);
++
++                    if (evt.type == EventType.MouseDrag || evt.type == EventType.ScrollWheel)
++                        _needsRepaint = true;
++                };
++            }
++
++            // Selection sync
++            Selection.selectionChanged += OnSelectionChanged;
++            EditorApplication.update += OnEditorUpdate;
++
++            // Initial view preset
++            _viewport.SetViewPreset(ViewPreset.Isometric);
++
++            // Force initial rebuild
++            _cache.Invalidate();
++        }
++
++        void OnDisable()
++        {
++            RestoreSolo();
++
++            Selection.selectionChanged -= OnSelectionChanged;
++            EditorApplication.update -= OnEditorUpdate;
++
++            _cache?.Dispose();
++            _viewport?.Dispose();
++        }
++
++        void OnEditorUpdate()
++        {
++            // Check if cache was rebuilt
++            if (_cache.Generation != _lastCacheGeneration)
++            {
++                _lastCacheGeneration = _cache.Generation;
++                var entries = new List<UIElementEntry>(_cache.Entries);
++                UIDiagnosticAnalyzer.Analyze(entries);
++
++                _toolbar.PopulateCanvasDropdown(entries);
++                _listPanel.SetEntries(entries, _toolbar);
++                _viewport.RebuildFromEntries(entries);
++
++                UpdateStatusBar(entries);
++                _needsRepaint = true;
++            }
++
++            if (_needsRepaint)
++            {
++                _needsRepaint = false;
++                Repaint();
++            }
++        }
++
++        void OnSelectionChanged()
++        {
++            var selected = Selection.activeGameObject;
++            if (selected == null) return;
++
++            var entries = _cache.Entries;
++            for (int i = 0; i < entries.Count; i++)
++            {
++                if (entries[i].Transform != null && entries[i].Transform.gameObject == selected)
++                {
++                    _viewport.HighlightEntry(entries[i].GlobalDrawIndex);
++                    _listPanel.SelectEntry(entries[i].GlobalDrawIndex);
++                    _needsRepaint = true;
++                    return;
++                }
++            }
++
++            _viewport.HighlightEntry(-1);
++        }
++
++        void UpdateStatusBar(List<UIElementEntry> entries)
++        {
++            int warnings = 0;
++            foreach (var e in entries)
++            {
++                if ((e.Flags & DiagnosticFlags.GhostBlocker) != 0)
++                    warnings++;
++            }
++
++            var statusBar = rootVisualElement.Q<Label>("status-bar");
++            if (statusBar != null)
++            {
++                string canvas = entries.Count > 0 ? entries[0].RootCanvasName : "—";
++                statusBar.text = $"{entries.Count} elements │ {warnings} warnings │ Canvas: {canvas}";
++            }
++        }
++
++        void ToggleActive(UIElementEntry entry)
++        {
++            if (entry.Transform == null) return;
++            var go = entry.Transform.gameObject;
++            Undo.RecordObject(go, "Toggle Active");
++            go.SetActive(!go.activeSelf);
++            _cache.Invalidate();
++        }
++
++        void ToggleRaycast(UIElementEntry entry)
++        {
++            if (entry.Transform == null) return;
++            if (!entry.Transform.TryGetComponent<Graphic>(out var graphic)) return;
++            Undo.RecordObject(graphic, "Toggle Raycast");
++            graphic.raycastTarget = !graphic.raycastTarget;
++            _cache.Invalidate();
++        }
++
++        void ToggleSolo(UIElementEntry entry)
++        {
++            if (entry.Transform == null) return;
++
++            if (_solo.Active)
++            {
++                RestoreSolo();
++                _cache.Invalidate();
++                return;
++            }
++
++            var parent = entry.Transform.parent;
++            if (parent == null) return;
++
++            _solo.Active = true;
++            _solo.Parent = parent;
++            _solo.Saved = new List<(GameObject, bool)>();
++
++            Undo.SetCurrentGroupName("Solo UI Element");
++            var graphics = parent.GetComponentsInChildren<Graphic>(true);
++            foreach (var g in graphics)
++            {
++                if (g.transform == entry.Transform) continue;
++                var go = g.gameObject;
++                _solo.Saved.Add((go, go.activeSelf));
++                Undo.RecordObject(go, "Solo UI Element");
++                go.SetActive(false);
++            }
++
++            _cache.Invalidate();
++        }
++
++        void RestoreSolo()
++        {
++            if (!_solo.Active || _solo.Saved == null) return;
++
++            foreach (var (go, wasActive) in _solo.Saved)
++            {
++                if (go != null)
++                {
++                    Undo.RecordObject(go, "Restore Solo");
++                    go.SetActive(wasActive);
++                }
++            }
++
++            _solo.Active = false;
++            _solo.Saved = null;
++        }
++
++        // Keyboard shortcuts
++        [Shortcut("UIDepthInspector/ExitSolo", KeyCode.Escape)]
++        static void ExitSoloShortcut()
++        {
++            var wnd = GetWindow<UIDepthInspectorWindow>();
++            if (wnd != null && wnd._solo.Active)
++            {
++                wnd.RestoreSolo();
++                wnd._cache.Invalidate();
++            }
++        }
++
++        [Shortcut("UIDepthInspector/FrameSelected", KeyCode.F)]
++        static void FrameSelectedShortcut()
++        {
++            var wnd = GetWindow<UIDepthInspectorWindow>();
++            if (wnd == null) return;
++
++            var selected = Selection.activeGameObject;
++            if (selected == null) return;
++
++            var entries = wnd._cache.Entries;
++            for (int i = 0; i < entries.Count; i++)
++            {
++                if (entries[i].Transform != null && entries[i].Transform.gameObject == selected)
++                {
++                    wnd._viewport.FrameEntry(entries[i].GlobalDrawIndex);
++                    wnd._needsRepaint = true;
++                    return;
++                }
++            }
++        }
++
++        void RebuildViewportFromFiltered()
++        {
++            // Viewport shows all entries; filtering only affects list visibility
++        }
++    }
++}
+diff --git a/Editor/Viewport/UIPreview3DViewport.cs b/Editor/Viewport/UIPreview3DViewport.cs
+new file mode 100644
+index 0000000..3bbc284
+--- /dev/null
++++ b/Editor/Viewport/UIPreview3DViewport.cs
+@@ -0,0 +1,360 @@
++using System;
++using System.Collections.Generic;
++using UnityEditor;
++using UnityEngine;
++
++namespace UIDepthInspector.Editor.Viewport
++{
++    using Core;
++
++    public enum ViewPreset
++    {
++        Front,
++        Isometric,
++        Side,
++    }
++
++    public class UIPreview3DViewport : IDisposable
++    {
++        PreviewRenderUtility _previewUtility;
++        readonly List<GameObject> _previewObjects = new();
++        readonly List<MeshCollider> _colliders = new();
++
++        Material _matRaycast;
++        Material _matPassive;
++        Material _matInactive;
++        Material _matGhost;
++
++        float _explosionFactor;
++        int _highlightIndex = -1;
++
++        // Camera orbit state
++        Vector2 _orbitAngles = new(20f, -30f);
++        Vector3 _pivotOffset = Vector3.zero;
++        float _zoomDistance = 10f;
++        bool _orthographic;
++
++        // Cached data
++        List<UIElementEntry> _currentEntries;
++        Rect _normalizationRect;
++
++        public void Initialize()
++        {
++            _previewUtility = new PreviewRenderUtility();
++            _previewUtility.camera.fieldOfView = 30f;
++            _previewUtility.camera.nearClipPlane = 0.01f;
++            _previewUtility.camera.farClipPlane = 500f;
++            _previewUtility.camera.clearFlags = CameraClearFlags.SolidColor;
++            _previewUtility.camera.backgroundColor = new Color(0.15f, 0.15f, 0.15f, 1f);
++
++            var shader = Shader.Find("Hidden/UIDepthInspector/QuadDiagnostic");
++
++            _matRaycast = new Material(shader) { color = new Color(0.878f, 0.376f, 0.376f, 0.7f) };
++            _matRaycast.SetFloat("_DiagnosticMode", 0f);
++
++            _matPassive = new Material(shader) { color = new Color(0.376f, 0.627f, 0.878f, 0.5f) };
++            _matPassive.SetFloat("_DiagnosticMode", 0f);
++
++            _matInactive = new Material(shader) { color = new Color(0.5f, 0.5f, 0.5f, 0.3f) };
++            _matInactive.SetFloat("_DiagnosticMode", 0f);
++
++            _matGhost = new Material(shader) { color = new Color(1f, 0.75f, 0.2f, 0.85f) };
++            _matGhost.SetFloat("_DiagnosticMode", 1f);
++        }
++
++        public void Dispose()
++        {
++            ClearPreviewObjects();
++
++            if (_matRaycast != null) UnityEngine.Object.DestroyImmediate(_matRaycast);
++            if (_matPassive != null) UnityEngine.Object.DestroyImmediate(_matPassive);
++            if (_matInactive != null) UnityEngine.Object.DestroyImmediate(_matInactive);
++            if (_matGhost != null) UnityEngine.Object.DestroyImmediate(_matGhost);
++
++            _previewUtility?.Cleanup();
++            _previewUtility = null;
++        }
++
++        public void RebuildFromEntries(List<UIElementEntry> entries)
++        {
++            _currentEntries = entries;
++            ClearPreviewObjects();
++
++            if (entries == null || entries.Count == 0) return;
++
++            ComputeNormalizationRect(entries);
++
++            for (int i = 0; i < entries.Count; i++)
++            {
++                var entry = entries[i];
++                var go = CreateQuad(entry, i, entries.Count);
++                _previewObjects.Add(go);
++            }
++        }
++
++        public void SetExplosionFactor(float factor)
++        {
++            _explosionFactor = factor;
++            RepositionQuads();
++        }
++
++        public void SetViewPreset(ViewPreset preset)
++        {
++            _pivotOffset = Vector3.zero;
++
++            switch (preset)
++            {
++                case ViewPreset.Front:
++                    _orbitAngles = Vector2.zero;
++                    _zoomDistance = 10f;
++                    _orthographic = true;
++                    break;
++                case ViewPreset.Isometric:
++                    _orbitAngles = new Vector2(30f, 45f);
++                    _zoomDistance = 12f;
++                    _orthographic = false;
++                    break;
++                case ViewPreset.Side:
++                    _orbitAngles = new Vector2(0f, 90f);
++                    _zoomDistance = 12f;
++                    _orthographic = false;
++                    break;
++            }
++        }
++
++        public void HighlightEntry(int globalDrawIndex)
++        {
++            _highlightIndex = globalDrawIndex;
++        }
++
++        public void FrameEntry(int globalDrawIndex)
++        {
++            if (globalDrawIndex < 0 || globalDrawIndex >= _previewObjects.Count) return;
++            var go = _previewObjects[globalDrawIndex];
++            if (go == null) return;
++
++            _pivotOffset = go.transform.localPosition;
++            _zoomDistance = 8f;
++        }
++
++        public int GetPickedEntryIndex(Vector2 mousePos, Rect viewportRect)
++        {
++            if (_previewUtility == null || _currentEntries == null || _currentEntries.Count == 0)
++                return -1;
++
++            // Convert mouse position to viewport-local coordinates
++            var localMouse = mousePos - viewportRect.position;
++            localMouse.y = viewportRect.height - localMouse.y; // Flip Y for camera
++
++            var cam = _previewUtility.camera;
++            var ray = cam.ScreenPointToRay(new Vector3(localMouse.x, localMouse.y, 0));
++
++            float closestDist = float.MaxValue;
++            int closestIndex = -1;
++
++            for (int i = 0; i < _colliders.Count; i++)
++            {
++                if (_colliders[i] != null && _colliders[i].Raycast(ray, out var hit, 500f))
++                {
++                    if (hit.distance < closestDist)
++                    {
++                        closestDist = hit.distance;
++                        closestIndex = i;
++                    }
++                }
++            }
++
++            return closestIndex;
++        }
++
++        public void HandleInput(Event evt, Rect viewportRect)
++        {
++            if (evt == null) return;
++
++            var mouseInRect = viewportRect.Contains(evt.mousePosition);
++            if (!mouseInRect) return;
++
++            switch (evt.type)
++            {
++                case EventType.MouseDrag when evt.button == 1: // Right-click orbit
++                    _orbitAngles.x += evt.delta.y * 0.3f;
++                    _orbitAngles.y += evt.delta.x * 0.3f;
++                    evt.Use();
++                    break;
++
++                case EventType.MouseDrag when evt.button == 2: // Middle-click pan
++                case EventType.MouseDrag when evt.button == 0 && evt.alt: // Alt+Left pan
++                    float panSpeed = _zoomDistance * 0.002f;
++                    var cam = _previewUtility.camera;
++                    _pivotOffset -= cam.transform.right * evt.delta.x * panSpeed;
++                    _pivotOffset += cam.transform.up * evt.delta.y * panSpeed;
++                    evt.Use();
++                    break;
++
++                case EventType.ScrollWheel: // Zoom
++                    _zoomDistance *= 1f + evt.delta.y * 0.05f;
++                    _zoomDistance = Mathf.Clamp(_zoomDistance, 1f, 100f);
++                    evt.Use();
++                    break;
++            }
++        }
++
++        public void OnGUI(Rect rect)
++        {
++            if (_previewUtility == null) return;
++
++            _previewUtility.BeginPreview(rect, GUIStyle.none);
++
++            UpdateCamera(rect);
++            _previewUtility.camera.Render();
++
++            // Draw selection highlight
++            if (_highlightIndex >= 0 && _highlightIndex < _previewObjects.Count)
++            {
++                var go = _previewObjects[_highlightIndex];
++                if (go != null)
++                {
++                    var mf = go.GetComponent<MeshFilter>();
++                    if (mf != null && mf.sharedMesh != null)
++                        DrawWireframeCage(go.transform, mf.sharedMesh.bounds);
++                }
++            }
++
++            // Draw mask bounds wireframes
++            if (_currentEntries != null)
++            {
++                Handles.color = new Color(0.25f, 0.88f, 0.25f, 0.8f); // green
++                for (int i = 0; i < _previewObjects.Count && i < _currentEntries.Count; i++)
++                {
++                    var entry = _currentEntries[i];
++                    bool hasMask = (entry.Flags & (DiagnosticFlags.HasMask | DiagnosticFlags.HasRectMask2D)) != 0;
++                    if (!hasMask) continue;
++
++                    var go = _previewObjects[i];
++                    if (go == null) continue;
++
++                    var mf = go.GetComponent<MeshFilter>();
++                    if (mf == null || mf.sharedMesh == null) continue;
++
++                    Handles.matrix = go.transform.localToWorldMatrix;
++                    Handles.DrawWireCube(mf.sharedMesh.bounds.center, mf.sharedMesh.bounds.size * 1.01f);
++                }
++                Handles.matrix = Matrix4x4.identity;
++            }
++
++            var result = _previewUtility.EndPreview();
++            GUI.DrawTexture(rect, result, ScaleMode.StretchToFill, false);
++        }
++
++        void UpdateCamera(Rect viewportRect)
++        {
++            var cam = _previewUtility.camera;
++            cam.orthographic = _orthographic;
++
++            var rotation = Quaternion.Euler(_orbitAngles.x, _orbitAngles.y, 0);
++            var position = _pivotOffset + rotation * new Vector3(0, 0, -_zoomDistance);
++
++            cam.transform.position = position;
++            cam.transform.rotation = rotation;
++
++            if (_orthographic)
++                cam.orthographicSize = _zoomDistance * 0.5f;
++
++            cam.aspect = viewportRect.width / viewportRect.height;
++        }
++
++        void ComputeNormalizationRect(List<UIElementEntry> entries)
++        {
++            float minX = float.MaxValue, minY = float.MaxValue;
++            float maxX = float.MinValue, maxY = float.MinValue;
++
++            foreach (var e in entries)
++            {
++                if (e.WorldRect.width < 0.01f && e.WorldRect.height < 0.01f) continue;
++                minX = Mathf.Min(minX, e.WorldRect.xMin);
++                minY = Mathf.Min(minY, e.WorldRect.yMin);
++                maxX = Mathf.Max(maxX, e.WorldRect.xMax);
++                maxY = Mathf.Max(maxY, e.WorldRect.yMax);
++            }
++
++            float w = maxX - minX;
++            float h = maxY - minY;
++            float size = Mathf.Max(w, h, 1f);
++            _normalizationRect = new Rect(minX, minY, size, size);
++        }
++
++        GameObject CreateQuad(UIElementEntry entry, int index, int totalCount)
++        {
++            var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
++            go.hideFlags = HideFlags.HideAndDontSave;
++
++            _previewUtility.AddSingleGO(go);
++
++            // Assign material
++            var mr = go.GetComponent<MeshRenderer>();
++            mr.sharedMaterial = GetMaterialForFlags(entry.Flags);
++
++            // Set position and scale
++            PositionQuad(go.transform, entry, index, totalCount);
++
++            // Setup collider for picking
++            var col = go.GetComponent<MeshCollider>();
++            if (col == null) col = go.AddComponent<MeshCollider>();
++            _colliders.Add(col);
++
++            return go;
++        }
++
++        void PositionQuad(Transform t, UIElementEntry entry, int index, int totalCount)
++        {
++            float normX = (entry.WorldRect.center.x - _normalizationRect.x) / _normalizationRect.width * 8f - 4f;
++            float normY = (entry.WorldRect.center.y - _normalizationRect.y) / _normalizationRect.height * 8f - 4f;
++            float z = totalCount > 0 ? index * (_explosionFactor / Mathf.Max(totalCount, 1)) : 0f;
++
++            t.localPosition = new Vector3(normX, normY, z);
++
++            float scaleX = entry.WorldRect.width / _normalizationRect.width * 8f;
++            float scaleY = entry.WorldRect.height / _normalizationRect.height * 8f;
++            scaleX = Mathf.Max(scaleX, 0.05f);
++            scaleY = Mathf.Max(scaleY, 0.05f);
++            t.localScale = new Vector3(scaleX, scaleY, 1f);
++        }
++
++        void RepositionQuads()
++        {
++            if (_currentEntries == null) return;
++            for (int i = 0; i < _previewObjects.Count && i < _currentEntries.Count; i++)
++            {
++                if (_previewObjects[i] != null)
++                    PositionQuad(_previewObjects[i].transform, _currentEntries[i], i, _currentEntries.Count);
++            }
++        }
++
++        Material GetMaterialForFlags(DiagnosticFlags flags)
++        {
++            if ((flags & DiagnosticFlags.Inactive) != 0) return _matInactive;
++            if ((flags & DiagnosticFlags.GhostBlocker) != 0) return _matGhost;
++            if ((flags & DiagnosticFlags.RaycastBlocker) != 0) return _matRaycast;
++            return _matPassive;
++        }
++
++        void DrawWireframeCage(Transform t, Bounds localBounds)
++        {
++            Handles.color = Color.yellow;
++            var matrix = t.localToWorldMatrix;
++            Handles.matrix = matrix;
++            Handles.DrawWireCube(localBounds.center, localBounds.size * 1.02f);
++            Handles.matrix = Matrix4x4.identity;
++        }
++
++        void ClearPreviewObjects()
++        {
++            foreach (var go in _previewObjects)
++            {
++                if (go != null) UnityEngine.Object.DestroyImmediate(go);
++            }
++            _previewObjects.Clear();
++            _colliders.Clear();
++        }
++    }
++}
+diff --git a/LICENSE.md b/LICENSE.md
+new file mode 100644
+index 0000000..806aa7c
+--- /dev/null
++++ b/LICENSE.md
+@@ -0,0 +1,21 @@
++MIT License
++
++Copyright (c) 2026 UI Depth Inspector Contributors
++
++Permission is hereby granted, free of charge, to any person obtaining a copy
++of this software and associated documentation files (the "Software"), to deal
++in the Software without restriction, including without limitation the rights
++to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++copies of the Software, and to permit persons to whom the Software is
++furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all
++copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++SOFTWARE.
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..97dfb44
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,56 @@
++# UI Layer & 3D Depth Inspector
++
++A dockable Unity EditorWindow that renders flat uGUI Canvases as an interactive 3D exploded viewport for visual debugging of draw order, raycast blockers, mask boundaries, and occlusion — in Edit Mode and Play Mode.
++
++## Features
++
++- **3D Exploded Viewport** — Orbit, pan, zoom through your Canvas layers spread along the Z-axis.
++- **Exact Draw Order** — Stack indices (#00–#N) matching Unity's actual render pipeline.
++- **Ghost Blocker Detection** — Flags invisible elements (`alpha == 0`) that still block raycasts.
++- **Mask Bounds** — Wireframe display of Mask and RectMask2D clip regions.
++- **Quick Controls** — Per-element active toggle, raycast toggle, and solo isolation.
++- **Selection Sync** — Click in 3D viewport ↔ Hierarchy ↔ Stack list, all synchronized.
++
++## Requirements
++
++- Unity 6 (6000.0+)
++- uGUI (`com.unity.ugui` 2.0.0+)
++
++## Installation
++
++### Via OpenUPM (recommended)
++
++```bash
++openupm add com.openupm.ui-depth-inspector
++```
++
++### Via Git URL
++
++Add to your project's `Packages/manifest.json`:
++
++```json
++{
++  "dependencies": {
++    "com.openupm.ui-depth-inspector": "https://github.com/openupm/ui-depth-inspector.git#v0.1.0"
++  }
++}
++```
++
++## Usage
++
++Open via **Window → UI → UI Depth Inspector**.
++
++### Navigation & Controls
++
++- **Left Mouse Drag** (or **Alt + Left Drag**): Orbit 3D viewport
++- **Alt + Left Drag** / **Middle Mouse Drag**: Pan viewport
++- **Scroll Wheel**: Zoom in/out
++- **Left Click**: Select UI element (synchronized across 3D Viewport, Hierarchy, and Stack List)
++
++### Keyboard Shortcuts
++
++- **`F`**: Frame selected UI element in the 3D viewport
++- **`Escape`**: Exit Solo isolation mode
++## License
++
++[MIT](LICENSE.md)
+diff --git a/docs/OPENUPM_PUBLISHING.md b/docs/OPENUPM_PUBLISHING.md
+new file mode 100644
+index 0000000..78a0a2d
+--- /dev/null
++++ b/docs/OPENUPM_PUBLISHING.md
+@@ -0,0 +1,39 @@
++# OpenUPM Registration & Publishing Guide
++
++## 1. Branch Protection Configuration (GitHub UI)
++Before accepting public pull requests:
++1. Go to your repository on GitHub → **Settings** → **Branches**.
++2. Under **Branch protection rules**, click **Add branch ruleset** or **Add rule** for `main`.
++3. Configure the following:
++   - **Require status checks before merging**: Enable.
++   - Search and select `commitlint` (matches the GitHub Actions job name).
++   - **Require branches to be up to date before merging**: Enable.
++   - **Do not allow bypassing the above settings**: Enable (enforces rules on maintainers as well).
++4. Save changes.
++
++## 2. Pushing to GitHub
++```bash
++git remote add origin https://github.com/<yourgithuborg>/ui-depth-inspector.git
++git push -u origin main
++```
++
++## 3. OpenUPM Registration (One-time PR)
++1. Fork [https://github.com/openupm/openupm](https://github.com/openupm/openupm).
++2. Create a new file in your fork: `data/packages/com.openupm.ui-depth-inspector.yml`:
++```yaml
++name: com.openupm.ui-depth-inspector
++displayName: UI Layer & 3D Depth Inspector
++description: Interactive 3D exploded viewport for debugging uGUI Canvas draw order, raycast blockers, and mask boundaries directly inside the Unity Editor.
++repoUrl: https://github.com/<yourgithuborg>/ui-depth-inspector
++licenseSpdxId: MIT
++topics:
++  - ui
++  - ugui
++  - canvas
++  - debug
++  - editor
++  - depth
++hunter: <your-github-username>
++```
++3. Open a Pull Request to `openupm/openupm`.
++4. Once merged, OpenUPM will automatically track and mirror all GitHub release tags generated by `release-please`.
+diff --git a/package.json b/package.json
+new file mode 100644
+index 0000000..612b9be
+--- /dev/null
++++ b/package.json
+@@ -0,0 +1,29 @@
++{
++  "name": "com.openupm.ui-depth-inspector",
++  "version": "0.1.0",
++  "displayName": "UI Layer & 3D Depth Inspector",
++  "description": "Interactive 3D exploded viewport for debugging uGUI Canvas draw order, raycast blockers, and mask boundaries directly inside the Unity Editor.",
++  "unity": "6000.0",
++  "unityRelease": "0f1",
++  "documentationUrl": "https://github.com/openupm/ui-depth-inspector#readme",
++  "changelogUrl": "https://github.com/openupm/ui-depth-inspector/blob/main/CHANGELOG.md",
++  "licensesUrl": "https://github.com/openupm/ui-depth-inspector/blob/main/LICENSE.md",
++  "keywords": [
++    "ui",
++    "ugui",
++    "canvas",
++    "debug",
++    "inspector",
++    "depth",
++    "editor",
++    "raycast",
++    "3d"
++  ],
++  "author": {
++    "name": "OpenUPM Community",
++    "url": "https://github.com/openupm"
++  },
++  "dependencies": {
++    "com.unity.ugui": "2.0.0"
++  }
++}
+diff --git a/release-please-config.json b/release-please-config.json
+new file mode 100644
+index 0000000..8dfa220
+--- /dev/null
++++ b/release-please-config.json
+@@ -0,0 +1,14 @@
++{
++  "packages": {
++    ".": {
++      "release-type": "simple",
++      "extra-files": [
++        {
++          "type": "json",
++          "path": "package.json",
++          "jsonpath": "$.version"
++        }
++      ]
++    }
++  }
++}
