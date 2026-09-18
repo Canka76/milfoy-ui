@@ -17,24 +17,11 @@ namespace UIDepthInspector.Editor.Viewport
     public class UIPreview3DViewport : IDisposable
     {
         PreviewRenderUtility _previewUtility;
-        readonly List<GameObject> _previewObjects = new();
-        readonly List<MeshCollider> _colliders = new();
-
-        Material _matRaycast;
-        Material _matPassive;
-        Material _matInactive;
-        Material _matGhost;
-
         float _explosionFactor;
+        float _slabThickness = 0.12f;
         int _highlightIndex = -1;
-
-        // Camera orbit state
-        Vector2 _orbitAngles = new(20f, -30f);
-        Vector3 _pivotOffset = Vector3.zero;
-        float _zoomDistance = 10f;
-        bool _orthographic;
-
-        // Cached data
+        readonly List<GameObject> _previewObjects = new();
+        readonly List<Collider> _colliders = new();
         List<UIElementEntry> _currentEntries;
         Rect _normalizationRect;
 
@@ -98,6 +85,11 @@ namespace UIDepthInspector.Editor.Viewport
             RepositionQuads();
         }
 
+        public void SetSlabThickness(float thickness)
+        {
+            _slabThickness = Mathf.Max(0.01f, thickness);
+            RepositionQuads();
+        }
         public void SetViewPreset(ViewPreset preset)
         {
             _pivotOffset = Vector3.zero;
@@ -299,7 +291,8 @@ namespace UIDepthInspector.Editor.Viewport
 
         GameObject CreateQuad(UIElementEntry entry, int index, int totalCount)
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            // Create 3D Cube primitive so the UI card has physical volume and visible side walls
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             go.hideFlags = HideFlags.HideAndDontSave;
 
             _previewUtility.AddSingleGO(go);
@@ -308,13 +301,15 @@ namespace UIDepthInspector.Editor.Viewport
             var mr = go.GetComponent<MeshRenderer>();
             mr.sharedMaterial = GetMaterialForFlags(entry.Flags);
 
-            // Set position and scale
+            // Set position and scale in XYZ
             PositionQuad(go.transform, entry, index, totalCount);
 
-            // Setup collider for picking
-            var col = go.GetComponent<MeshCollider>();
-            if (col == null) col = go.AddComponent<MeshCollider>();
-            _colliders.Add(col);
+            // Setup collider for accurate front and side-wall 3D picking
+            var col = go.GetComponent<Collider>();
+            if (col != null)
+            {
+                _colliders.Add(col);
+            }
 
             return go;
         }
@@ -327,13 +322,12 @@ namespace UIDepthInspector.Editor.Viewport
 
             t.localPosition = new Vector3(normX, normY, z);
 
-            float scaleX = entry.WorldRect.width / _normalizationRect.width * 8f;
-            float scaleY = entry.WorldRect.height / _normalizationRect.height * 8f;
-            scaleX = Mathf.Max(scaleX, 0.05f);
-            scaleY = Mathf.Max(scaleY, 0.05f);
-            t.localScale = new Vector3(scaleX, scaleY, 1f);
-        }
+            float scaleX = Mathf.Max(entry.WorldRect.width / _normalizationRect.width * 8f, 0.05f);
+            float scaleY = Mathf.Max(entry.WorldRect.height / _normalizationRect.height * 8f, 0.05f);
+            float scaleZ = Mathf.Max(_slabThickness, 0.01f);
 
+            t.localScale = new Vector3(scaleX, scaleY, scaleZ);
+        }
         void RepositionQuads()
         {
             if (_currentEntries == null) return;
