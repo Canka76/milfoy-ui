@@ -50,6 +50,13 @@ Stop guessing why a button is unclickable or which invisible overlay is intercep
 - Seamless selection sync between **3D Viewport ↔ Unity Hierarchy ↔ Draw-Order Stack List**.
 - Selecting an item in any view automatically updates the selection across all views in real time.
 
+
+### 🤖 AI-Optimized Diagnostics & Passive Cache
+- **Passive Context Caching**: Automatically updates token-optimized UI diagnostic summaries in `.milfoy/ui-context.md` on scene save with 0% idle overhead (zero background threads, HTTP servers, or open ports).
+- **Spatial Occlusion Detection**: Pre-calculates 2D screen-space touch intersections between overlapping Canvases and buttons directly in C#.
+- **Token-Optimized Anomaly Dumps**: Generates ultra-compact Markdown diagnostic summaries ($\le 300$ tokens) for LLMs (Claude, ChatGPT, Gemini).
+- **Machine-Patchable Action Schema**: Outputs deterministic JSON repair actions (`fixAction` in `.milfoy/ui-context.json`) for autonomous AI coding agents.
+- **Headless CLI Execution**: One-line batchmode command to export UI context in CI/CD or agent pipelines.
 ---
 
 ## 📦 Installation
