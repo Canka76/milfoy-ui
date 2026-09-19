@@ -345,5 +345,138 @@ namespace UIDepthInspector.Editor.Tests
                 Assert.IsNull(GameObject.Find(UISyntheticSceneGenerator.RootContainerName));
             }
         }
+
+        [Test]
+        public void Evaluator_CalculatesPrecisionRecallAndF1Accurately()
+        {
+            var gt = new UIBenchmarkGroundTruth { benchmarkId = "B1" };
+            gt.anomalies.Add(new InjectedAnomalyEntry { anomalyId = "A1", targetPath = "Canvas/P1", type = "ANOMALY_GHOST_BLOCKER" });
+            gt.anomalies.Add(new InjectedAnomalyEntry { anomalyId = "A2", targetPath = "Canvas/P2", type = "ANOMALY_NESTED_LABEL_RAYCAST" });
+
+            var milfoyAgent = new AgentTrialRecord
+            {
+                agentName = "MilfoyAgent",
+                totalPromptTokens = 800,
+                totalCompletionTokens = 200,
+                turns = 2,
+                durationSeconds = 4.5f,
+                reportedIssuePaths = new List<string> { "Canvas/P1", "Canvas/P2" }
+            };
+
+            var baselineAgent = new AgentTrialRecord
+            {
+                agentName = "BaselineAgent",
+                totalPromptTokens = 12000,
+                totalCompletionTokens = 3500,
+                turns = 14,
+                durationSeconds = 85.0f,
+                reportedIssuePaths = new List<string> { "Canvas/P1", "Canvas/HallucinatedElement" }
+            };
+
+            var comparison = UIBenchmarkEvaluator.Evaluate(gt, milfoyAgent, baselineAgent);
+
+            if (Math.Abs(comparison.milfoyMetrics.precision - 1.0f) > 0.01f)
+                throw new Exception($"Expected milfoy precision 1.0, got {comparison.milfoyMetrics.precision}");
+            if (Math.Abs(comparison.milfoyMetrics.recall - 1.0f) > 0.01f)
+                throw new Exception($"Expected milfoy recall 1.0, got {comparison.milfoyMetrics.recall}");
+            if (Math.Abs(comparison.milfoyMetrics.f1Score - 1.0f) > 0.01f)
+                throw new Exception($"Expected milfoy f1Score 1.0, got {comparison.milfoyMetrics.f1Score}");
+            if (comparison.milfoyMetrics.truePositives != 2)
+                throw new Exception($"Expected milfoy TP 2, got {comparison.milfoyMetrics.truePositives}");
+            if (comparison.milfoyMetrics.falsePositives != 0)
+                throw new Exception($"Expected milfoy FP 0, got {comparison.milfoyMetrics.falsePositives}");
+            if (comparison.milfoyMetrics.falseNegatives != 0)
+                throw new Exception($"Expected milfoy FN 0, got {comparison.milfoyMetrics.falseNegatives}");
+
+            if (Math.Abs(comparison.baselineMetrics.precision - 0.5f) > 0.01f)
+                throw new Exception($"Expected baseline precision 0.5, got {comparison.baselineMetrics.precision}");
+            if (Math.Abs(comparison.baselineMetrics.recall - 0.5f) > 0.01f)
+                throw new Exception($"Expected baseline recall 0.5, got {comparison.baselineMetrics.recall}");
+            if (Math.Abs(comparison.baselineMetrics.f1Score - 0.5f) > 0.01f)
+                throw new Exception($"Expected baseline f1Score 0.5, got {comparison.baselineMetrics.f1Score}");
+            if (comparison.baselineMetrics.truePositives != 1)
+                throw new Exception($"Expected baseline TP 1, got {comparison.baselineMetrics.truePositives}");
+            if (comparison.baselineMetrics.falsePositives != 1)
+                throw new Exception($"Expected baseline FP 1, got {comparison.baselineMetrics.falsePositives}");
+            if (comparison.baselineMetrics.falseNegatives != 1)
+                throw new Exception($"Expected baseline FN 1, got {comparison.baselineMetrics.falseNegatives}");
+
+            if (comparison.tokenReductionPercentage <= 90f)
+                throw new Exception($"Expected token reduction > 90%, got {comparison.tokenReductionPercentage}");
+            if (comparison.timeReductionPercentage <= 90f)
+                throw new Exception($"Expected time reduction > 90%, got {comparison.timeReductionPercentage}");
+            if (comparison.turnReductionPercentage <= 80f)
+                throw new Exception($"Expected turn reduction > 80%, got {comparison.turnReductionPercentage}");
+
+            Assert.AreEqual(1.0f, comparison.milfoyMetrics.precision, 0.01f);
+            Assert.AreEqual(1.0f, comparison.milfoyMetrics.recall, 0.01f);
+            Assert.AreEqual(1.0f, comparison.milfoyMetrics.f1Score, 0.01f);
+            Assert.AreEqual(0.5f, comparison.baselineMetrics.precision, 0.01f);
+            Assert.AreEqual(0.5f, comparison.baselineMetrics.recall, 0.01f);
+            Assert.AreEqual(0.5f, comparison.baselineMetrics.f1Score, 0.01f);
+            Assert.Greater(comparison.tokenReductionPercentage, 90f);
+            Assert.Greater(comparison.timeReductionPercentage, 90f);
+            Assert.Greater(comparison.turnReductionPercentage, 80f);
+        }
+
+        [Test]
+        public void Evaluator_FormatsMarkdownAndCsvReportsCorrectly()
+        {
+            var gt = new UIBenchmarkGroundTruth { benchmarkId = "BENCH_TEST_042" };
+            gt.anomalies.Add(new InjectedAnomalyEntry { anomalyId = "A1", targetPath = "Canvas/P1", type = "ANOMALY_GHOST_BLOCKER" });
+            gt.anomalies.Add(new InjectedAnomalyEntry { anomalyId = "A2", targetPath = "Canvas/P2", type = "ANOMALY_NESTED_LABEL_RAYCAST" });
+
+            var milfoy = new AgentTrialRecord
+            {
+                agentName = "MilfoyAgent",
+                totalPromptTokens = 800,
+                totalCompletionTokens = 200,
+                turns = 2,
+                durationSeconds = 4.5f,
+                reportedIssuePaths = new List<string> { "Canvas/P1", "Canvas/P2" }
+            };
+
+            var baseline = new AgentTrialRecord
+            {
+                agentName = "BaselineAgent",
+                totalPromptTokens = 12000,
+                totalCompletionTokens = 3500,
+                turns = 14,
+                durationSeconds = 85.0f,
+                reportedIssuePaths = new List<string> { "Canvas/P1", "Canvas/HallucinatedElement" }
+            };
+
+            var comparison = UIBenchmarkEvaluator.Evaluate(gt, milfoy, baseline);
+
+            string md = UIBenchmarkEvaluator.FormatMarkdownReport(comparison);
+            if (string.IsNullOrEmpty(md))
+                throw new Exception("Expected non-empty markdown report");
+            if (!md.Contains("# Milfoy Dual-Agent Benchmark Report: BENCH_TEST_042"))
+                throw new Exception("Expected markdown report title with benchmarkId");
+            if (!md.Contains("MilfoyAgent") || !md.Contains("BaselineAgent"))
+                throw new Exception("Expected markdown report to contain agent names");
+            if (!md.Contains("| **Total Tokens** |") || !md.Contains("| **Precision** |"))
+                throw new Exception("Expected markdown report to contain metric rows");
+            if (!md.Contains("-93.5%"))
+                throw new Exception("Expected markdown report to contain -93.5% token reduction");
+
+            string csv = UIBenchmarkEvaluator.FormatCsvReport(comparison);
+            if (string.IsNullOrEmpty(csv))
+                throw new Exception("Expected non-empty CSV report");
+            if (!csv.Contains("Metric,BaselineAgent,MilfoyAgent,Efficiency Gain / Delta"))
+                throw new Exception("Expected CSV report header with agent names");
+            if (!csv.Contains("Total Tokens,15500,1000,-93.5%"))
+                throw new Exception("Expected CSV report total tokens row");
+            if (!csv.Contains("Tool / Turn Count,14,2,-85.7%"))
+                throw new Exception("Expected CSV report turn count row");
+            if (!csv.Contains("Precision,50.0%,100.0%,+50.0%"))
+                throw new Exception("Expected CSV report precision row");
+
+            Assert.IsNotEmpty(md);
+            Assert.IsTrue(md.Contains("MilfoyAgent"));
+            Assert.IsTrue(md.Contains("-93.5%"));
+            Assert.IsNotEmpty(csv);
+            Assert.IsTrue(csv.Contains("Total Tokens"));
+        }
     }
 }

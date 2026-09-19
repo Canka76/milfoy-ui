@@ -46,6 +46,8 @@ namespace UIDepthInspector.Editor.Tests
             RunTest("Presets_AllTypes_ReturnValidConfigurations", Test_Presets_Configurations, ref passed, ref failed);
             RunTest("Generator_ChaoticPreset_InjectsAnomalies", Test_Generator_ChaoticPreset, ref passed, ref failed);
             RunTest("Milfoy_Detects_All_Injected_Benchmark_Anomalies", Test_Milfoy_Detects_All_Injected_Benchmark_Anomalies, ref passed, ref failed);
+            RunTest("Evaluator_CalculatesPrecisionRecallAndF1Accurately", Test_Evaluator_CalculatesPrecisionRecallAndF1Accurately, ref passed, ref failed);
+            RunTest("Evaluator_FormatsMarkdownAndCsvReportsCorrectly", Test_Evaluator_FormatsMarkdownAndCsvReportsCorrectly, ref passed, ref failed);
             Debug.Log($"================ TEST SUMMARY: {passed} PASSED, {failed} FAILED ================");
 
             if (Application.isBatchMode)
@@ -738,6 +740,18 @@ namespace UIDepthInspector.Editor.Tests
         {
             var test = new UIBenchmarkTests();
             test.Milfoy_Detects_All_Injected_Benchmark_Anomalies();
+        }
+
+        static void Test_Evaluator_CalculatesPrecisionRecallAndF1Accurately()
+        {
+            var test = new UIBenchmarkTests();
+            test.Evaluator_CalculatesPrecisionRecallAndF1Accurately();
+        }
+
+        static void Test_Evaluator_FormatsMarkdownAndCsvReportsCorrectly()
+        {
+            var test = new UIBenchmarkTests();
+            test.Evaluator_FormatsMarkdownAndCsvReportsCorrectly();
         }
     }
 }
