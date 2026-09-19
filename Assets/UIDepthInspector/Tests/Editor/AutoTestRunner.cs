@@ -45,6 +45,7 @@ namespace UIDepthInspector.Editor.Tests
             RunTest("Generator_SameSeed_ProducesIdenticalHierarchyAndCount", Test_Generator_DeterministicSeeding, ref passed, ref failed);
             RunTest("Presets_AllTypes_ReturnValidConfigurations", Test_Presets_Configurations, ref passed, ref failed);
             RunTest("Generator_ChaoticPreset_InjectsAnomalies", Test_Generator_ChaoticPreset, ref passed, ref failed);
+            RunTest("Milfoy_Detects_All_Injected_Benchmark_Anomalies", Test_Milfoy_Detects_All_Injected_Benchmark_Anomalies, ref passed, ref failed);
             Debug.Log($"================ TEST SUMMARY: {passed} PASSED, {failed} FAILED ================");
 
             if (Application.isBatchMode)
@@ -731,6 +732,12 @@ namespace UIDepthInspector.Editor.Tests
         {
             var test = new UIBenchmarkTests();
             test.Generator_ChaoticPreset_InjectsAnomalies();
+        }
+
+        static void Test_Milfoy_Detects_All_Injected_Benchmark_Anomalies()
+        {
+            var test = new UIBenchmarkTests();
+            test.Milfoy_Detects_All_Injected_Benchmark_Anomalies();
         }
     }
 }

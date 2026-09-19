@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UIDepthInspector.Editor.Benchmark;
-
+using UIDepthInspector.Editor.Core;
+using UIDepthInspector.Editor.Diagnostics;
 namespace UIDepthInspector.Editor.Tests
 {
     [TestFixture]
@@ -241,10 +242,101 @@ namespace UIDepthInspector.Editor.Tests
                     throw new Exception("Expected ANOMALY_GHOST_BLOCKER in chaotic anomalies");
                 if (!types.Contains("ANOMALY_SPATIAL_OVERLAP"))
                     throw new Exception("Expected ANOMALY_SPATIAL_OVERLAP in chaotic anomalies");
+                if (!types.Contains("ANOMALY_MISSING_SPRITE"))
+                    throw new Exception("Expected ANOMALY_MISSING_SPRITE in chaotic anomalies");
+                if (!types.Contains("ANOMALY_NESTED_LABEL_RAYCAST"))
+                    throw new Exception("Expected ANOMALY_NESTED_LABEL_RAYCAST in chaotic anomalies");
+                if (!types.Contains("ANOMALY_CANVASGROUP_TRAP"))
+                    throw new Exception("Expected ANOMALY_CANVASGROUP_TRAP in chaotic anomalies");
 
-                Assert.Greater(groundTruth.totalAnomalies, 0);
+                Assert.GreaterOrEqual(groundTruth.totalAnomalies, 5);
                 Assert.IsTrue(types.Contains("ANOMALY_GHOST_BLOCKER"));
                 Assert.IsTrue(types.Contains("ANOMALY_SPATIAL_OVERLAP"));
+                Assert.IsTrue(types.Contains("ANOMALY_MISSING_SPRITE"));
+                Assert.IsTrue(types.Contains("ANOMALY_NESTED_LABEL_RAYCAST"));
+                Assert.IsTrue(types.Contains("ANOMALY_CANVASGROUP_TRAP"));
+            }
+            finally
+            {
+                UISyntheticSceneGenerator.ClearBenchmarkUI();
+                Assert.IsNull(GameObject.Find(UISyntheticSceneGenerator.RootContainerName));
+            }
+        }
+
+        [Test]
+        public void Milfoy_Detects_All_Injected_Benchmark_Anomalies()
+        {
+            var config = UIBenchmarkPreset.GetConfig(UIBenchmarkPresetType.ChaoticStress);
+            var root = UISyntheticSceneGenerator.Generate(config, seed: 400, out var groundTruth);
+            try
+            {
+                if (root == null)
+                    throw new Exception("Expected generated root to not be null");
+                if (groundTruth == null || groundTruth.anomalies.Count < 5)
+                    throw new Exception($"Expected at least 5 anomalies, got {groundTruth?.anomalies.Count}");
+
+                var entries = UIRenderTreeCollector.Collect();
+                UIDiagnosticAnalyzer.Analyze(entries);
+
+                if (entries == null || entries.Count == 0)
+                    throw new Exception("Expected collected UI entries to be non-empty");
+
+                var entryByPath = new Dictionary<string, UIElementEntry>(entries.Count);
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    var e = entries[i];
+                    if (e.Transform != null)
+                    {
+                        string path = UISyntheticSceneGenerator.GetHierarchyPath(e.Transform, root.transform);
+                        entryByPath[path] = e;
+                    }
+                }
+
+                foreach (var anomaly in groundTruth.anomalies)
+                {
+                    UIElementEntry matchedEntry;
+                    bool found = entryByPath.TryGetValue(anomaly.targetPath, out matchedEntry);
+                    if (!found && !string.IsNullOrEmpty(anomaly.affectedTarget))
+                    {
+                        found = entryByPath.TryGetValue(anomaly.affectedTarget, out matchedEntry);
+                    }
+
+                    if (!found)
+                        throw new Exception($"Injected anomaly {anomaly.anomalyId} ({anomaly.type}) at '{anomaly.targetPath}' not found in collected UI entries");
+
+                    switch (anomaly.type)
+                    {
+                        case "ANOMALY_GHOST_BLOCKER":
+                            if ((matchedEntry.Flags & DiagnosticFlags.GhostBlocker) == 0)
+                                 throw new Exception($"Anomaly {anomaly.anomalyId} ({anomaly.targetPath}) expected DiagnosticFlags.GhostBlocker, got {matchedEntry.Flags}");
+                            break;
+
+                        case "ANOMALY_SPATIAL_OVERLAP":
+                            if ((matchedEntry.Flags & DiagnosticFlags.OcclusionBlocker) == 0)
+                                 throw new Exception($"Anomaly {anomaly.anomalyId} ({anomaly.targetPath}) expected DiagnosticFlags.OcclusionBlocker, got {matchedEntry.Flags}");
+                            break;
+
+                        case "ANOMALY_MISSING_SPRITE":
+                            if ((matchedEntry.Flags & (DiagnosticFlags.GhostBlocker | DiagnosticFlags.ZeroSize)) == 0)
+                                 throw new Exception($"Anomaly {anomaly.anomalyId} ({anomaly.targetPath}) expected DiagnosticFlags.GhostBlocker or ZeroSize, got {matchedEntry.Flags}");
+                            break;
+
+                        case "ANOMALY_NESTED_LABEL_RAYCAST":
+                            if ((matchedEntry.Flags & DiagnosticFlags.NestedLabelRaycast) == 0)
+                                 throw new Exception($"Anomaly {anomaly.anomalyId} ({anomaly.targetPath}) expected DiagnosticFlags.NestedLabelRaycast, got {matchedEntry.Flags}");
+                            break;
+
+                        case "ANOMALY_CANVASGROUP_TRAP":
+                            if ((matchedEntry.Flags & (DiagnosticFlags.GroupBlocked | DiagnosticFlags.GroupTransparent)) == 0)
+                                 throw new Exception($"Anomaly {anomaly.anomalyId} ({anomaly.targetPath}) expected GroupBlocked or GroupTransparent, got {matchedEntry.Flags}");
+                            break;
+
+                        default:
+                            throw new Exception($"Unknown anomaly type {anomaly.type}");
+                    }
+                }
+
+                Assert.GreaterOrEqual(groundTruth.anomalies.Count, 5);
             }
             finally
             {

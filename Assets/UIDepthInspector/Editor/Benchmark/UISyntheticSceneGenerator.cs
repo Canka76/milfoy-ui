@@ -312,14 +312,21 @@ namespace UIDepthInspector.Editor.Benchmark
             // 5. CanvasGroup Trap
             if (config.injectCanvasGroupTraps)
             {
-                var trapGo = new GameObject("CanvasGroup_Trap", typeof(RectTransform), typeof(CanvasGroup));
+                var trapGo = new GameObject("CanvasGroup_Trap", typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
                 trapGo.transform.SetParent(contentGo.transform, false);
+                var trapRt = trapGo.GetComponent<RectTransform>();
+                trapRt.sizeDelta = new Vector2(200, 60);
+
+                var trapImg = trapGo.GetComponent<Image>();
+                trapImg.sprite = GetOrCreateDefaultSprite();
+                trapImg.color = Color.white;
+                trapImg.raycastTarget = true;
+
                 var cg = trapGo.GetComponent<CanvasGroup>();
                 cg.alpha = 0f; // Completely invisible container
                 cg.blocksRaycasts = true; // But still intercepts input!
 
                 var trappedBtn = CreateButton("Button_Trapped", trapGo.transform, new Vector2(130, 45), Vector2.zero, "Hidden Trap", Color.gray);
-
                 groundTruth.anomalies.Add(new InjectedAnomalyEntry
                 {
                     anomalyId = $"ANO_{groundTruth.anomalies.Count + 1:D3}",
