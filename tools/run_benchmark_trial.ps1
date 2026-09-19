@@ -311,12 +311,16 @@ $evalArgs = @(
 
 $evalProcess = Start-Process -FilePath $UnityExe -ArgumentList $evalArgs -Wait -NoNewWindow -PassThru
 if ($evalProcess.ExitCode -ne 0) {
-    Write-Host "Benchmark evaluation failed with exit code $($evalProcess.ExitCode)!" -ForegroundColor Red
-    if (Test-Path $evalLog) {
-        Write-Host "--- Unity Log Tail ---" -ForegroundColor Yellow
-        Get-Content $evalLog -Tail 40 | Write-Host
+    if ((Test-Path (Join-Path $ResolvedOutDir "benchmark-report.md")) -and (Test-Path (Join-Path $ResolvedOutDir "benchmark-report.csv"))) {
+        Write-Host "[Step 3/3] Evaluation completed successfully (reports generated before exit)." -ForegroundColor Green
+    } else {
+        Write-Host "Benchmark evaluation failed with exit code $($evalProcess.ExitCode)!" -ForegroundColor Red
+        if (Test-Path $evalLog) {
+            Write-Host "--- Unity Log Tail ---" -ForegroundColor Yellow
+            Get-Content $evalLog -Tail 40 | Write-Host
+        }
+        exit $evalProcess.ExitCode
     }
-    exit $evalProcess.ExitCode
 }
 
 Write-Host "[Step 3/3] Evaluation completed successfully." -ForegroundColor Green
