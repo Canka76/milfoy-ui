@@ -7,6 +7,7 @@ using UIDepthInspector.Editor.Core;
 using UIDepthInspector.Editor.Diagnostics;
 using UIDepthInspector.Editor.Export;
 using UIDepthInspector.Editor.Viewport;
+using UIDepthInspector.Editor.Benchmark;
 namespace UIDepthInspector.Editor.Tests
 {
     public static class AutoTestRunner
@@ -38,6 +39,7 @@ namespace UIDepthInspector.Editor.Tests
             RunTest("Exporter_Json_AnomaliesMode_IncludesStructuredFixActions", Test_ExporterJsonAnomalies, ref passed, ref failed);
             RunTest("CLI_ParseExportMode_CorrectlyResolvesAllModesAndDefaults", Test_CLI_ParseExportMode, ref passed, ref failed);
             RunTest("AutoExporter_ExportActiveContext_GeneratesAnomaliesContextFiles", Test_AutoExporter, ref passed, ref failed);
+            RunTest("GroundTruth_Serialization_RoundTripsAccurately", Test_GroundTruth_Serialization, ref passed, ref failed);
             Debug.Log($"================ TEST SUMMARY: {passed} PASSED, {failed} FAILED ================");
 
             if (Application.isBatchMode)
@@ -688,6 +690,12 @@ namespace UIDepthInspector.Editor.Tests
             {
                 Object.DestroyImmediate(canvasGo);
             }
+        }
+
+        static void Test_GroundTruth_Serialization()
+        {
+            var test = new UIBenchmarkTests();
+            test.GroundTruth_Serialization_RoundTripsAccurately();
         }
     }
 }
