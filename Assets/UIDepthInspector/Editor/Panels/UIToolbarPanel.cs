@@ -191,6 +191,50 @@ namespace UIDepthInspector.Editor.Panels
                     OnFilterChanged?.Invoke();
                 });
             }
+
+            // Benchmark Button integration
+            var btnBenchmark = root.Q<Button>("btn-benchmark");
+            if (btnBenchmark == null)
+            {
+                btnBenchmark = new Button(() => Benchmark.UIBenchmarkWindow.ShowWindow())
+                {
+                    name = "btn-benchmark",
+                    text = "Benchmark",
+                    tooltip = "Open Milfoy Benchmark Lab Window (Tools > Milfoy > Benchmark Lab)"
+                };
+                btnBenchmark.style.height = 19;
+                btnBenchmark.style.paddingLeft = 8;
+                btnBenchmark.style.paddingRight = 8;
+                btnBenchmark.style.marginLeft = 6;
+                btnBenchmark.style.fontSize = 11;
+
+                var exportBtn = root.Q<Button>("btn-export");
+                if (exportBtn != null && exportBtn.parent != null)
+                {
+                    int idx = exportBtn.parent.IndexOf(exportBtn);
+                    exportBtn.parent.Insert(idx + 1, btnBenchmark);
+                }
+                else if (row1 != null)
+                {
+                    var sepBench = new VisualElement();
+                    sepBench.AddToClassList("toolbar-separator");
+                    sepBench.style.width = 1;
+                    sepBench.style.height = 16;
+                    sepBench.style.backgroundColor = new Color(0.35f, 0.35f, 0.35f, 1f);
+                    sepBench.style.marginLeft = 6;
+                    sepBench.style.marginRight = 2;
+                    row1.Add(sepBench);
+                    row1.Add(btnBenchmark);
+                }
+                else if (toolbar != null)
+                {
+                    toolbar.Add(btnBenchmark);
+                }
+            }
+            else
+            {
+                btnBenchmark.clicked += () => Benchmark.UIBenchmarkWindow.ShowWindow();
+            }
         }
 
         public void PopulateCanvasDropdown(IReadOnlyList<UIElementEntry> entries)
