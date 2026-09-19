@@ -46,8 +46,7 @@ Unity.exe -batchmode -quit -projectPath . \
 
 ## 🧪 Benchmark System & Dual-Agent Evaluation Trials
 
-Milfoy features an automated **Benchmark Lab** for evaluating the accuracy and token efficiency of AI coding agents against ground-truth uGUI defects.
-
+Milfoy features an automated **Benchmark Lab** for evaluating the accuracy and token efficiency of AI coding agents against ground-truth uGUI defects. Full empirical results (-94.2% token savings) are documented in [`docs/BENCHMARK_RESULTS.md`](docs/BENCHMARK_RESULTS.md).
 ### 🎯 Synthetic Challenge Generation
 Challenges can be generated programmatically in batchmode:
 ```bash
