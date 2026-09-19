@@ -22,6 +22,7 @@ namespace UIDepthInspector.Editor.Benchmark
             {
                 var tex = Texture2D.whiteTexture;
                 s_DefaultSprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+                s_DefaultSprite.hideFlags = HideFlags.HideAndDontSave;
             }
             return s_DefaultSprite;
         }
@@ -159,11 +160,12 @@ namespace UIDepthInspector.Editor.Benchmark
             contentLayout.spacing = 15;
             contentLayout.padding = new RectOffset(25, 25, 20, 20);
 
-            // Estimate card count based on targetElementCount
+            // Procedurally determine card count and variations using rng
             int currentBaseElements = 14;
             int remainingElements = Mathf.Max(6, config.targetElementCount - currentBaseElements);
-            int cardCount = Mathf.Clamp(remainingElements / 5, 1, 12);
-
+            int baseCards = Mathf.Clamp(remainingElements / 5, 1, 10);
+            int cardCount = baseCards + rng.Next(-1, 2); // Seed-driven variation (+/- 1 card)
+            cardCount = Mathf.Clamp(cardCount, 1, 12);
             for (int i = 0; i < cardCount; i++)
             {
                 var cardGo = CreatePanel($"Card_{i}", contentGo.transform, new Vector2(1350, 75), Vector2.zero, new Color(0.22f, 0.22f, 0.28f, 1f), raycastTarget: false);
