@@ -2,10 +2,11 @@
   "packages": {
     ".": {
       "release-type": "simple",
+      "changelog-path": "Assets/UIDepthInspector/CHANGELOG.md",
       "extra-files": [
         {
           "type": "json",
-          "path": "package.json",
+          "path": "Assets/UIDepthInspector/package.json",
           "jsonpath": "$.version"
         }
       ]
