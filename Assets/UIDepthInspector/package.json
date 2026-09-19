@@ -1,6 +1,6 @@
 {
   "name": "com.canka.milfoy-ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "Milfoy UI - 3D Depth Inspector",
   "description": "Interactive 3D exploded viewport & depth inspector for Unity uGUI.",
   "unity": "6000.0",
