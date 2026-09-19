@@ -144,14 +144,11 @@ namespace UIDepthInspector.Editor.Benchmark
 
             if (trial != null && trial.reportedIssuePaths != null)
             {
-                var seenReported = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 for (int i = 0; i < trial.reportedIssuePaths.Count; i++)
                 {
                     string raw = trial.reportedIssuePaths[i];
                     if (string.IsNullOrWhiteSpace(raw)) continue;
                     string norm = NormalizePath(raw);
-                    if (!seenReported.Add(norm)) continue;
-
                     bool matched = false;
                     for (int j = 0; j < gtAnomalies.Count; j++)
                     {
@@ -297,11 +294,11 @@ namespace UIDepthInspector.Editor.Benchmark
             sb.AppendLine($"| **True Positives (TP)** | {baseline.truePositives} | {milfoy.truePositives} | {tpDelta} |");
 
             // False Positives
-            string fpDelta = milfoy.falsePositives == 0 ? "0 FP" : FormatCountDelta(milfoy.falsePositives - baseline.falsePositives);
+            string fpDelta = FormatCountDelta(milfoy.falsePositives - baseline.falsePositives);
             sb.AppendLine($"| **False Positives (FP)** | {baseline.falsePositives} | {milfoy.falsePositives} | {fpDelta} |");
 
             // False Negatives
-            string fnDelta = milfoy.falseNegatives == 0 ? "0 FN" : FormatCountDelta(milfoy.falseNegatives - baseline.falseNegatives);
+            string fnDelta = FormatCountDelta(milfoy.falseNegatives - baseline.falseNegatives);
             sb.AppendLine($"| **False Negatives (FN)** | {baseline.falseNegatives} | {milfoy.falseNegatives} | {fnDelta} |");
 
             // Precision
