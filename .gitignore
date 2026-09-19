@@ -7,6 +7,10 @@
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
 
+# Milfoy passive diagnostic cache (local editor artifacts)
+.milfoy/
+BenchmarkTrials/
+
 # IDE
 .idea/
 .vs/
