@@ -40,6 +40,7 @@ namespace UIDepthInspector.Editor.Tests
             RunTest("CLI_ParseExportMode_CorrectlyResolvesAllModesAndDefaults", Test_CLI_ParseExportMode, ref passed, ref failed);
             RunTest("AutoExporter_ExportActiveContext_GeneratesAnomaliesContextFiles", Test_AutoExporter, ref passed, ref failed);
             RunTest("GroundTruth_Serialization_RoundTripsAccurately", Test_GroundTruth_Serialization, ref passed, ref failed);
+            RunTest("BenchmarkResult_Serialization_RoundTripsAccurately", Test_BenchmarkResult_Serialization, ref passed, ref failed);
             Debug.Log($"================ TEST SUMMARY: {passed} PASSED, {failed} FAILED ================");
 
             if (Application.isBatchMode)
@@ -696,6 +697,12 @@ namespace UIDepthInspector.Editor.Tests
         {
             var test = new UIBenchmarkTests();
             test.GroundTruth_Serialization_RoundTripsAccurately();
+        }
+
+        static void Test_BenchmarkResult_Serialization()
+        {
+            var test = new UIBenchmarkTests();
+            test.BenchmarkResult_Serialization_RoundTripsAccurately();
         }
     }
 }
