@@ -340,6 +340,7 @@ namespace UIDepthInspector.Editor.Tests
             }
             finally
             {
+                UIRenderTreeCollector.Collect(System.Array.Empty<Canvas>());
                 UISyntheticSceneGenerator.ClearBenchmarkUI();
                 Assert.IsNull(GameObject.Find(UISyntheticSceneGenerator.RootContainerName));
             }
