@@ -248,3 +248,31 @@
     border-bottom-left-radius: 2px;
     border-bottom-right-radius: 2px;
 }
+
+.copy-ai-btn {
+    background-color: #1e3a5f;
+    border-left-color: #3b82f6;
+    border-right-color: #3b82f6;
+    border-top-color: #3b82f6;
+    border-bottom-color: #3b82f6;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    color: #93c5fd;
+    -unity-font-style: bold;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    margin-right: 4px;
+}
+
+.copy-ai-btn:hover {
+    background-color: #2563eb;
+    color: #ffffff;
+}

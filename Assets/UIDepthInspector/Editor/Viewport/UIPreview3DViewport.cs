@@ -48,6 +48,8 @@ namespace UIDepthInspector.Editor.Viewport
             _previewUtility.camera.farClipPlane = 500f;
             _previewUtility.camera.clearFlags = CameraClearFlags.SolidColor;
             _previewUtility.camera.backgroundColor = new Color(0.12f, 0.12f, 0.12f, 1f); // Studio dark #1f1f1f
+            _previewUtility.camera.transparencySortMode = TransparencySortMode.Orthographic;
+            _previewUtility.camera.transparencySortAxis = new Vector3(0f, 0f, 1f);
             var shader = Shader.Find("Hidden/UIDepthInspector/QuadDiagnostic");
             if (shader == null || !shader.isSupported)
             {
@@ -345,11 +347,18 @@ namespace UIDepthInspector.Editor.Viewport
             go.hideFlags = HideFlags.HideAndDontSave;
 
             _previewUtility.AddSingleGO(go);
-
-            // Assign material
+            // Assign material with explicit renderQueue per layer index (guarantees draw order even at zero explosion)
             var mr = go.GetComponent<MeshRenderer>();
             mr.sharedMaterial = GetMaterialForFlags(entry.Flags);
-
+            mr.sortingOrder = index;
+            if (mr.sharedMaterial != null)
+            {
+                mr.material = new Material(mr.sharedMaterial)
+                {
+                    hideFlags = HideFlags.HideAndDontSave,
+                    renderQueue = 3000 + index
+                };
+            }
             // Set position and scale in XYZ
             PositionQuad(go.transform, entry, index, totalCount);
 
@@ -495,7 +504,22 @@ namespace UIDepthInspector.Editor.Viewport
         {
             foreach (var go in _previewObjects)
             {
-                if (go != null) UnityEngine.Object.DestroyImmediate(go);
+                if (go != null)
+                {
+                    var mr = go.GetComponent<MeshRenderer>();
+                    if (mr != null && mr.sharedMaterial != null)
+                    {
+                        // Destroy instanced per-quad material if it was created
+                        if (mr.sharedMaterial != _matRaycast &&
+                            mr.sharedMaterial != _matPassive &&
+                            mr.sharedMaterial != _matInactive &&
+                            mr.sharedMaterial != _matGhost)
+                        {
+                            UnityEngine.Object.DestroyImmediate(mr.sharedMaterial);
+                        }
+                    }
+                    UnityEngine.Object.DestroyImmediate(go);
+                }
             }
             _previewObjects.Clear();
             _colliders.Clear();

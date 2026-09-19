@@ -34,6 +34,7 @@
 
             <ui:VisualElement class="list-footer">
                 <ui:DropdownField name="canvas-filter" label="Canvas" class="canvas-dropdown" tooltip="Filter stack by root Canvas" />
+                <ui:Button name="btn-copy-ai" text="Copy AI Context" class="copy-ai-btn" tooltip="Copy token-dense AI diagnostic prompt (Markdown). Shift+Click for JSON." />
                 <ui:Button name="btn-copy-stack" text="Copy Stack" class="copy-btn" tooltip="Copy formatted draw order stack and warnings to clipboard" />
             </ui:VisualElement>
         </ui:VisualElement>

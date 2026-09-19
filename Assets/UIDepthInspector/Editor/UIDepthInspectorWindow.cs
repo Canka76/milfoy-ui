@@ -156,10 +156,17 @@ namespace UIDepthInspector.Editor
                     var rect = viewportContainer.contentRect;
                     var evt = Event.current;
 
-                    // Handle interactive inputs (mouse drag orbit, zoom, pan) on any layout/input event
+                    // Handle interactive inputs (mouse drag orbit, zoom, pan, F to frame)
                     if (rect.width > 1 && rect.height > 1)
                     {
                         _viewport.HandleInput(evt, rect);
+
+                        // 'F' key within viewport: frame selected entry
+                        if (evt.type == EventType.KeyDown && evt.keyCode == KeyCode.F && !evt.shift && !evt.control && !evt.alt)
+                        {
+                            FrameSelected();
+                            evt.Use();
+                        }
 
                         // Left-click picking
                         if (evt.type == EventType.MouseDown && evt.button == 0 && !evt.alt)
@@ -379,28 +386,23 @@ namespace UIDepthInspector.Editor
                 wnd._cache.Invalidate();
             }
         }
-
-        [Shortcut("UIDepthInspector/FrameSelected", KeyCode.F)]
-        static void FrameSelectedShortcut()
+        public void FrameSelected()
         {
-            var wnd = GetWindow<UIDepthInspectorWindow>();
-            if (wnd == null) return;
-
             var selected = Selection.activeGameObject;
             if (selected == null) return;
 
-            var entries = wnd._cache.Entries;
+            var entries = _cache.Entries;
             for (int i = 0; i < entries.Count; i++)
             {
                 if (entries[i].Transform != null && entries[i].Transform.gameObject == selected)
                 {
-                    wnd._viewport.FrameEntry(entries[i].GlobalDrawIndex);
-                    wnd._needsRepaint = true;
+                    _viewport.FrameEntry(entries[i].GlobalDrawIndex);
+                    _needsRepaint = true;
+                    Repaint();
                     return;
                 }
             }
         }
-
         void RebuildViewportFromFiltered()
         {
             // Viewport shows all entries; filtering only affects list visibility
