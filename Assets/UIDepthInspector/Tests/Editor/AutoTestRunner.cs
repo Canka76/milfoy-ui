@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using UIDepthInspector.Editor.Core;
 using UIDepthInspector.Editor.Diagnostics;
+using UIDepthInspector.Editor.Export;
 using UIDepthInspector.Editor.Viewport;
 namespace UIDepthInspector.Editor.Tests
 {
@@ -29,6 +31,13 @@ namespace UIDepthInspector.Editor.Tests
             RunTest("CustomColorRegistry_Persistence", Test_CustomColorRegistry_Persistence, ref passed, ref failed);
             RunTest("UIElementEntry_CustomColor", Test_UIElementEntry_CustomColor, ref passed, ref failed);
             RunTest("Viewport_HigherDrawIndex_IsPlacedCloserToCameraAlongNegativeZ", Test_ViewportDepthPlacement, ref passed, ref failed);
+            RunTest("Viewport_RenderQueue_IncrementsPerLayer_GuaranteesDrawOrder", Test_ViewportRenderQueueOrdering, ref passed, ref failed);
+            RunTest("Analyze_SpatialOcclusion_SetsOcclusionBlockerAndPopulatesPairs", Test_SpatialOcclusion, ref passed, ref failed);
+            RunTest("Analyze_NestedLabelRaycast_SetsNestedLabelRaycastFlag", Test_NestedLabelRaycast, ref passed, ref failed);
+            RunTest("Exporter_Markdown_AnomaliesMode_OutputsOnlyAnomaliesAndSpatialBlocks", Test_ExporterMarkdownAnomalies, ref passed, ref failed);
+            RunTest("Exporter_Json_AnomaliesMode_IncludesStructuredFixActions", Test_ExporterJsonAnomalies, ref passed, ref failed);
+            RunTest("CLI_ParseExportMode_CorrectlyResolvesAllModesAndDefaults", Test_CLI_ParseExportMode, ref passed, ref failed);
+            RunTest("AutoExporter_ExportActiveContext_GeneratesAnomaliesContextFiles", Test_AutoExporter, ref passed, ref failed);
             Debug.Log($"================ TEST SUMMARY: {passed} PASSED, {failed} FAILED ================");
 
             if (Application.isBatchMode)
@@ -394,6 +403,290 @@ namespace UIDepthInspector.Editor.Tests
             finally
             {
                 viewport.Dispose();
+            }
+        }
+
+        static void Test_ViewportRenderQueueOrdering()
+        {
+            var viewport = new UIPreview3DViewport();
+            try
+            {
+                viewport.Initialize();
+                viewport.SetExplosionFactor(0f);
+
+                var entry0 = new UIElementEntry { GlobalDrawIndex = 0, WorldRect = new Rect(0, 0, 100, 100) };
+                var entry1 = new UIElementEntry { GlobalDrawIndex = 1, WorldRect = new Rect(0, 0, 100, 100) };
+                var entry2 = new UIElementEntry { GlobalDrawIndex = 2, WorldRect = new Rect(0, 0, 100, 100) };
+
+                var entries = new List<UIElementEntry> { entry0, entry1, entry2 };
+                viewport.RebuildFromEntries(entries);
+
+                var field = typeof(UIPreview3DViewport).GetField("_previewObjects", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var previewObjects = (List<GameObject>)field.GetValue(viewport);
+
+                if (previewObjects == null || previewObjects.Count != 3)
+                    throw new System.Exception($"Expected 3 preview objects, got {previewObjects?.Count ?? 0}");
+
+                var mr0 = previewObjects[0].GetComponent<MeshRenderer>();
+                var mr1 = previewObjects[1].GetComponent<MeshRenderer>();
+                var mr2 = previewObjects[2].GetComponent<MeshRenderer>();
+
+                if (mr0.sharedMaterial == null || mr1.sharedMaterial == null || mr2.sharedMaterial == null)
+                    throw new System.Exception("MeshRenderers must have non-null sharedMaterial");
+
+                if (mr0.sharedMaterial.renderQueue != 3000)
+                    throw new System.Exception($"Expected mr0 renderQueue 3000, got {mr0.sharedMaterial.renderQueue}");
+                if (mr1.sharedMaterial.renderQueue != 3001)
+                    throw new System.Exception($"Expected mr1 renderQueue 3001, got {mr1.sharedMaterial.renderQueue}");
+                if (mr2.sharedMaterial.renderQueue != 3002)
+                    throw new System.Exception($"Expected mr2 renderQueue 3002, got {mr2.sharedMaterial.renderQueue}");
+            }
+            finally
+            {
+                viewport.Dispose();
+            }
+        }
+
+        static void Test_SpatialOcclusion()
+        {
+            var canvasGo = new GameObject("RootCanvas", typeof(Canvas), typeof(GraphicRaycaster));
+            var overlayCanvasGo = new GameObject("OverlayCanvas", typeof(Canvas), typeof(GraphicRaycaster));
+            try
+            {
+                var rootCanvas = canvasGo.GetComponent<Canvas>();
+                rootCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                rootCanvas.sortingOrder = 0;
+
+                var btnGo = new GameObject("TestButton", typeof(RectTransform), typeof(Image), typeof(Button));
+                btnGo.transform.SetParent(canvasGo.transform, false);
+                var btnRect = btnGo.GetComponent<RectTransform>();
+                btnRect.sizeDelta = new Vector2(100, 50);
+                btnRect.position = Vector3.zero;
+
+                var overlayCanvas = overlayCanvasGo.GetComponent<Canvas>();
+                overlayCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                overlayCanvas.overrideSorting = true;
+                overlayCanvas.sortingOrder = 10;
+
+                var blockerGo = new GameObject("OverlayImage", typeof(RectTransform), typeof(Image));
+                blockerGo.transform.SetParent(overlayCanvasGo.transform, false);
+                var blockerRect = blockerGo.GetComponent<RectTransform>();
+                blockerRect.sizeDelta = new Vector2(100, 50);
+                blockerRect.position = Vector3.zero;
+                var blockerImg = blockerGo.GetComponent<Image>();
+                blockerImg.color = Color.white;
+                blockerImg.raycastTarget = true;
+
+                var entries = UIRenderTreeCollector.Collect(new Canvas[] { rootCanvas, overlayCanvas });
+                UIDiagnosticAnalyzer.Analyze(entries);
+
+                if (entries.Count != 2)
+                    throw new System.Exception($"Expected 2 entries, got {entries.Count}");
+
+                var lower = entries[0];
+                var upper = entries[1];
+
+                if ((upper.Flags & DiagnosticFlags.OcclusionBlocker) == 0)
+                    throw new System.Exception("Expected upper element to have OcclusionBlocker flag");
+                if (upper.OcclusionPairs == null || upper.OcclusionPairs.Count != 1)
+                    throw new System.Exception("Expected upper element to have 1 occlusion pair");
+                if (upper.OcclusionPairs[0].TargetName != "TestButton")
+                    throw new System.Exception($"Expected target name 'TestButton', got '{upper.OcclusionPairs[0].TargetName}'");
+                if (Mathf.Abs(upper.OcclusionPairs[0].OverlapPercentage - 100f) > 0.01f)
+                    throw new System.Exception($"Expected 100% overlap, got {upper.OcclusionPairs[0].OverlapPercentage}");
+
+                if (lower.OcclusionPairs == null || lower.OcclusionPairs.Count != 1)
+                    throw new System.Exception("Expected lower element to have 1 occlusion pair");
+            }
+            finally
+            {
+                Object.DestroyImmediate(overlayCanvasGo);
+                Object.DestroyImmediate(canvasGo);
+            }
+        }
+
+        static void Test_NestedLabelRaycast()
+        {
+            var canvasGo = new GameObject("RootCanvas", typeof(Canvas), typeof(GraphicRaycaster));
+            try
+            {
+                var btnGo = new GameObject("SubmitButton", typeof(RectTransform), typeof(Image), typeof(Button));
+                btnGo.transform.SetParent(canvasGo.transform, false);
+                var btnImg = btnGo.GetComponent<Image>();
+                btnImg.raycastTarget = true;
+
+                var labelGo = new GameObject("ButtonLabel", typeof(RectTransform), typeof(Text));
+                labelGo.transform.SetParent(btnGo.transform, false);
+                var labelText = labelGo.GetComponent<Text>();
+                labelText.raycastTarget = true;
+
+                var entries = UIRenderTreeCollector.Collect(new Canvas[] { canvasGo.GetComponent<Canvas>() });
+                UIDiagnosticAnalyzer.Analyze(entries);
+
+                if (entries.Count != 2)
+                    throw new System.Exception($"Expected 2 entries, got {entries.Count}");
+
+                var btn = entries[0];
+                var label = entries[1];
+
+                if ((btn.Flags & DiagnosticFlags.NestedLabelRaycast) != 0)
+                    throw new System.Exception("Button root should not have NestedLabelRaycast flag");
+                if ((label.Flags & DiagnosticFlags.NestedLabelRaycast) == 0)
+                    throw new System.Exception("Child label should have NestedLabelRaycast flag");
+            }
+            finally
+            {
+                Object.DestroyImmediate(canvasGo);
+            }
+        }
+
+        static void Test_ExporterMarkdownAnomalies()
+        {
+            var canvasGo = new GameObject("RootCanvas", typeof(Canvas), typeof(GraphicRaycaster));
+            var overlayCanvasGo = new GameObject("OverlayCanvas", typeof(Canvas), typeof(GraphicRaycaster));
+            try
+            {
+                var btnGo = new GameObject("TestButton", typeof(RectTransform), typeof(Image), typeof(Button));
+                btnGo.transform.SetParent(canvasGo.transform, false);
+                var btnRect = btnGo.GetComponent<RectTransform>();
+                btnRect.sizeDelta = new Vector2(100, 50);
+                btnRect.position = Vector3.zero;
+
+                var overlayCanvas = overlayCanvasGo.GetComponent<Canvas>();
+                overlayCanvas.overrideSorting = true;
+                overlayCanvas.sortingOrder = 10;
+
+                var blockerGo = new GameObject("OverlayImage", typeof(RectTransform), typeof(Image));
+                blockerGo.transform.SetParent(overlayCanvasGo.transform, false);
+                var blockerRect = blockerGo.GetComponent<RectTransform>();
+                blockerRect.sizeDelta = new Vector2(100, 50);
+                blockerRect.position = Vector3.zero;
+                var blockerImg = blockerGo.GetComponent<Image>();
+                blockerImg.raycastTarget = true;
+
+                var healthyGo = new GameObject("HealthyBg", typeof(RectTransform), typeof(Image));
+                healthyGo.transform.SetParent(canvasGo.transform, false);
+                var healthyImg = healthyGo.GetComponent<Image>();
+                healthyImg.raycastTarget = false;
+
+                var entries = UIRenderTreeCollector.Collect(new Canvas[] { canvasGo.GetComponent<Canvas>(), overlayCanvas });
+                UIDiagnosticAnalyzer.Analyze(entries);
+
+                string md = UIAIContextExporter.ExportToCompactMarkdown(entries, canvasGo.GetComponent<Canvas>(), ExportMode.Anomalies);
+
+                if (!md.Contains("[SPATIAL BLOCK]"))
+                    throw new System.Exception("Expected markdown to contain [SPATIAL BLOCK]");
+                if (!md.Contains("'OverlayImage' intercepts 100% of Button 'TestButton'"))
+                    throw new System.Exception("Expected markdown to contain spatial block triplet");
+                if (!md.Contains("Fix: Disable Raycast Target or lower Canvas sorting order."))
+                    throw new System.Exception("Expected markdown to contain spatial block fix guidance");
+                if (md.Contains("HealthyBg"))
+                    throw new System.Exception("Expected markdown in Anomalies mode to omit HealthyBg");
+            }
+            finally
+            {
+                Object.DestroyImmediate(overlayCanvasGo);
+                Object.DestroyImmediate(canvasGo);
+            }
+        }
+
+        static void Test_ExporterJsonAnomalies()
+        {
+            var canvasGo = new GameObject("RootCanvas", typeof(Canvas), typeof(GraphicRaycaster));
+            var overlayCanvasGo = new GameObject("OverlayCanvas", typeof(Canvas), typeof(GraphicRaycaster));
+            try
+            {
+                var btnGo = new GameObject("TestButton", typeof(RectTransform), typeof(Image), typeof(Button));
+                btnGo.transform.SetParent(canvasGo.transform, false);
+                var btnRect = btnGo.GetComponent<RectTransform>();
+                btnRect.sizeDelta = new Vector2(100, 50);
+                btnRect.position = Vector3.zero;
+
+                var overlayCanvas = overlayCanvasGo.GetComponent<Canvas>();
+                overlayCanvas.overrideSorting = true;
+                overlayCanvas.sortingOrder = 10;
+
+                var blockerGo = new GameObject("OverlayImage", typeof(RectTransform), typeof(Image));
+                blockerGo.transform.SetParent(overlayCanvasGo.transform, false);
+                var blockerRect = blockerGo.GetComponent<RectTransform>();
+                blockerRect.sizeDelta = new Vector2(100, 50);
+                blockerRect.position = Vector3.zero;
+                var blockerImg = blockerGo.GetComponent<Image>();
+                blockerImg.raycastTarget = true;
+
+                var healthyGo = new GameObject("HealthyBg", typeof(RectTransform), typeof(Image));
+                healthyGo.transform.SetParent(canvasGo.transform, false);
+                var healthyImg = healthyGo.GetComponent<Image>();
+                healthyImg.raycastTarget = false;
+
+                var entries = UIRenderTreeCollector.Collect(new Canvas[] { canvasGo.GetComponent<Canvas>(), overlayCanvas });
+                UIDiagnosticAnalyzer.Analyze(entries);
+
+                string json = UIAIContextExporter.ExportToJson(entries, canvasGo.GetComponent<Canvas>(), ExportMode.Anomalies, prettyPrint: true);
+
+                if (!json.Contains("\"flag\": \"SPATIAL_BLOCK\""))
+                    throw new System.Exception("Expected json to contain SPATIAL_BLOCK flag");
+                if (!json.Contains("\"fixAction\":"))
+                    throw new System.Exception("Expected json to contain fixAction object");
+                if (!json.Contains("\"component\": \"Image\""))
+                    throw new System.Exception("Expected fixAction component to be Image");
+                if (!json.Contains("\"property\": \"raycastTarget\""))
+                    throw new System.Exception("Expected fixAction property to be raycastTarget");
+                if (!json.Contains("\"value\": false"))
+                    throw new System.Exception("Expected fixAction value to be false");
+                if (json.Contains("\"name\": \"HealthyBg\""))
+                    throw new System.Exception("Expected json elements in Anomalies mode to omit HealthyBg");
+            }
+            finally
+            {
+                Object.DestroyImmediate(overlayCanvasGo);
+                Object.DestroyImmediate(canvasGo);
+            }
+        }
+
+        static void Test_CLI_ParseExportMode()
+        {
+            if (UIDepthInspectorCLI.ParseExportMode("anomalies") != ExportMode.Anomalies)
+                throw new System.Exception("Expected 'anomalies' to parse to ExportMode.Anomalies");
+            if (UIDepthInspectorCLI.ParseExportMode("compact") != ExportMode.Compact)
+                throw new System.Exception("Expected 'compact' to parse to ExportMode.Compact");
+            if (UIDepthInspectorCLI.ParseExportMode("full") != ExportMode.Full)
+                throw new System.Exception("Expected 'full' to parse to ExportMode.Full");
+            if (UIDepthInspectorCLI.ParseExportMode("") != ExportMode.Anomalies)
+                throw new System.Exception("Expected empty string to default to ExportMode.Anomalies");
+            if (UIDepthInspectorCLI.ParseExportMode("invalid") != ExportMode.Anomalies)
+                throw new System.Exception("Expected invalid string to default to ExportMode.Anomalies");
+        }
+
+        static void Test_AutoExporter()
+        {
+            var canvasGo = new GameObject("AutoExportCanvas", typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster));
+            try
+            {
+                var childGo = new GameObject("GhostImage", typeof(RectTransform), typeof(Image));
+                childGo.transform.SetParent(canvasGo.transform, false);
+                var img = childGo.GetComponent<Image>();
+                img.color = new Color(1, 1, 1, 0); // alpha 0 ghost blocker
+                img.raycastTarget = true;
+
+                UIAIContextAutoExporter.ExportActiveContext();
+
+                if (!File.Exists(UIAIContextAutoExporter.ActiveContextMarkdown))
+                    throw new System.Exception("Expected ActiveContextMarkdown file to exist");
+                if (!File.Exists(UIAIContextAutoExporter.ActiveContextJson))
+                    throw new System.Exception("Expected ActiveContextJson file to exist");
+
+                string md = File.ReadAllText(UIAIContextAutoExporter.ActiveContextMarkdown);
+                string json = File.ReadAllText(UIAIContextAutoExporter.ActiveContextJson);
+
+                if (!md.Contains("AutoExportCanvas") || !md.Contains("GhostImage"))
+                    throw new System.Exception("Expected markdown to contain canvas and element names");
+                if (!json.Contains("GhostImage") || !json.Contains("GHOST_BLOCKER"))
+                    throw new System.Exception("Expected json to contain GhostImage and GHOST_BLOCKER");
+            }
+            finally
+            {
+                Object.DestroyImmediate(canvasGo);
             }
         }
     }
