@@ -290,7 +290,7 @@ namespace UIDepthInspector.Editor.Benchmark
             sb.AppendLine($"| **Time to Complete** | {baseline.durationSeconds.ToString("F1", CultureInfo.InvariantCulture)} seconds | {milfoy.durationSeconds.ToString("F1", CultureInfo.InvariantCulture)} seconds | **{FormatEfficiencyReduction(comparison.timeReductionPercentage)}** |");
 
             // Ground Truth Issues
-            sb.AppendLine($"| **Ground Truth Issues** | {comparison.groundTruthCount} | {comparison.groundTruthCount} | — |");
+            sb.AppendLine($"| **Ground Truth Issues** | {comparison.groundTruthCount} | {comparison.groundTruthCount} | - |");
 
             // True Positives
             string tpDelta = FormatCountDelta(milfoy.truePositives - baseline.truePositives);
@@ -306,11 +306,11 @@ namespace UIDepthInspector.Editor.Benchmark
 
             // Precision
             string precDelta = FormatPercentDelta(milfoy.precision - baseline.precision);
-            sb.AppendLine($"| **Precision** | {baseline.precision.ToString("P1", CultureInfo.InvariantCulture)} | {milfoy.precision.ToString("P1", CultureInfo.InvariantCulture)} | **{precDelta}** |");
+            sb.AppendLine($"| **Precision** | {FormatPercent(baseline.precision)} | {FormatPercent(milfoy.precision)} | **{precDelta}** |");
 
             // Recall
             string recallDelta = FormatPercentDelta(milfoy.recall - baseline.recall);
-            sb.AppendLine($"| **Recall** | {baseline.recall.ToString("P1", CultureInfo.InvariantCulture)} | {milfoy.recall.ToString("P1", CultureInfo.InvariantCulture)} | **{recallDelta}** |");
+            sb.AppendLine($"| **Recall** | {FormatPercent(baseline.recall)} | {FormatPercent(milfoy.recall)} | **{recallDelta}** |");
 
             // F1 Score
             string f1Delta = FormatFloatDelta(milfoy.f1Score - baseline.f1Score);
@@ -339,15 +339,20 @@ namespace UIDepthInspector.Editor.Benchmark
             sb.AppendLine($"Completion Tokens,{baseline.totalCompletionTokens},{milfoy.totalCompletionTokens},{FormatEfficiencyReduction(CalculateReduction(baseline.totalCompletionTokens, milfoy.totalCompletionTokens))}");
             sb.AppendLine($"Tool / Turn Count,{baseline.turns},{milfoy.turns},{FormatEfficiencyReduction(comparison.turnReductionPercentage)}");
             sb.AppendLine($"Time (seconds),{baseline.durationSeconds.ToString("F2", CultureInfo.InvariantCulture)},{milfoy.durationSeconds.ToString("F2", CultureInfo.InvariantCulture)},{FormatEfficiencyReduction(comparison.timeReductionPercentage)}");
-            sb.AppendLine($"Ground Truth Issues,{comparison.groundTruthCount},{comparison.groundTruthCount},—");
+            sb.AppendLine($"Ground Truth Issues,{comparison.groundTruthCount},{comparison.groundTruthCount},-");
             sb.AppendLine($"True Positives (TP),{baseline.truePositives},{milfoy.truePositives},{FormatCountDelta(milfoy.truePositives - baseline.truePositives)}");
             sb.AppendLine($"False Positives (FP),{baseline.falsePositives},{milfoy.falsePositives},{FormatCountDelta(milfoy.falsePositives - baseline.falsePositives)}");
             sb.AppendLine($"False Negatives (FN),{baseline.falseNegatives},{milfoy.falseNegatives},{FormatCountDelta(milfoy.falseNegatives - baseline.falseNegatives)}");
-            sb.AppendLine($"Precision,{baseline.precision.ToString("P1", CultureInfo.InvariantCulture)},{milfoy.precision.ToString("P1", CultureInfo.InvariantCulture)},{FormatPercentDelta(milfoy.precision - baseline.precision)}");
-            sb.AppendLine($"Recall,{baseline.recall.ToString("P1", CultureInfo.InvariantCulture)},{milfoy.recall.ToString("P1", CultureInfo.InvariantCulture)},{FormatPercentDelta(milfoy.recall - baseline.recall)}");
+            sb.AppendLine($"Precision,{FormatPercent(baseline.precision)},{FormatPercent(milfoy.precision)},{FormatPercentDelta(milfoy.precision - baseline.precision)}");
+            sb.AppendLine($"Recall,{FormatPercent(baseline.recall)},{FormatPercent(milfoy.recall)},{FormatPercentDelta(milfoy.recall - baseline.recall)}");
             sb.AppendLine($"F1 Score,{baseline.f1Score.ToString("F3", CultureInfo.InvariantCulture)},{milfoy.f1Score.ToString("F3", CultureInfo.InvariantCulture)},{FormatFloatDelta(milfoy.f1Score - baseline.f1Score)}");
 
             return sb.ToString();
+        }
+
+        private static string FormatPercent(float val)
+        {
+            return (val * 100f).ToString("F1", CultureInfo.InvariantCulture) + "%";
         }
 
         private static string FormatEfficiencyReduction(float reductionPercentage)

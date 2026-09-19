@@ -48,6 +48,9 @@ namespace UIDepthInspector.Editor.Tests
             RunTest("Milfoy_Detects_All_Injected_Benchmark_Anomalies", Test_Milfoy_Detects_All_Injected_Benchmark_Anomalies, ref passed, ref failed);
             RunTest("Evaluator_CalculatesPrecisionRecallAndF1Accurately", Test_Evaluator_CalculatesPrecisionRecallAndF1Accurately, ref passed, ref failed);
             RunTest("Evaluator_FormatsMarkdownAndCsvReportsCorrectly", Test_Evaluator_FormatsMarkdownAndCsvReportsCorrectly, ref passed, ref failed);
+            RunTest("CLI_ParseBenchmarkPreset_ResolvesAllPresetsAndDefaults", Test_CLI_ParseBenchmarkPreset, ref passed, ref failed);
+            RunTest("CLI_GenerateBenchmark_ProducesGroundTruthAndInstructions", Test_CLI_GenerateBenchmark, ref passed, ref failed);
+            RunTest("CLI_EvaluateBenchmark_CalculatesComparisonAndWritesReports", Test_CLI_EvaluateBenchmark, ref passed, ref failed);
             Debug.Log($"================ TEST SUMMARY: {passed} PASSED, {failed} FAILED ================");
 
             if (Application.isBatchMode)
@@ -752,6 +755,24 @@ namespace UIDepthInspector.Editor.Tests
         {
             var test = new UIBenchmarkTests();
             test.Evaluator_FormatsMarkdownAndCsvReportsCorrectly();
+        }
+
+        static void Test_CLI_ParseBenchmarkPreset()
+        {
+            var test = new UIBenchmarkTests();
+            test.CLI_ParseBenchmarkPreset_ResolvesAllPresetsAndDefaults();
+        }
+
+        static void Test_CLI_GenerateBenchmark()
+        {
+            var test = new UIBenchmarkTests();
+            test.CLI_GenerateBenchmark_ProducesGroundTruthAndInstructions();
+        }
+
+        static void Test_CLI_EvaluateBenchmark()
+        {
+            var test = new UIBenchmarkTests();
+            test.CLI_EvaluateBenchmark_CalculatesComparisonAndWritesReports();
         }
     }
 }

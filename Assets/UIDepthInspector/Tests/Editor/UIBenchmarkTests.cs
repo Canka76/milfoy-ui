@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UIDepthInspector.Editor.Benchmark;
 using UIDepthInspector.Editor.Core;
 using UIDepthInspector.Editor.Diagnostics;
+using UIDepthInspector.Editor.Export;
 namespace UIDepthInspector.Editor.Tests
 {
     [TestFixture]
@@ -477,6 +479,143 @@ namespace UIDepthInspector.Editor.Tests
             Assert.IsTrue(md.Contains("-93.5%"));
             Assert.IsNotEmpty(csv);
             Assert.IsTrue(csv.Contains("Total Tokens"));
+        }
+
+        [Test]
+        public void CLI_ParseBenchmarkPreset_ResolvesAllPresetsAndDefaults()
+        {
+            Assert.AreEqual(UIBenchmarkPresetType.CleanReference, UIDepthInspectorCLI.ParseBenchmarkPreset("CleanReference"));
+            Assert.AreEqual(UIBenchmarkPresetType.CleanReference, UIDepthInspectorCLI.ParseBenchmarkPreset("cleanreference"));
+            Assert.AreEqual(UIBenchmarkPresetType.CasualHud, UIDepthInspectorCLI.ParseBenchmarkPreset("CasualHud"));
+            Assert.AreEqual(UIBenchmarkPresetType.CasualHud, UIDepthInspectorCLI.ParseBenchmarkPreset("casualhud"));
+            Assert.AreEqual(UIBenchmarkPresetType.DeepProduction, UIDepthInspectorCLI.ParseBenchmarkPreset("DeepProduction"));
+            Assert.AreEqual(UIBenchmarkPresetType.ChaoticStress, UIDepthInspectorCLI.ParseBenchmarkPreset("ChaoticStress"));
+            Assert.AreEqual(UIBenchmarkPresetType.Custom, UIDepthInspectorCLI.ParseBenchmarkPreset("Custom"));
+            Assert.AreEqual(UIBenchmarkPresetType.CasualHud, UIDepthInspectorCLI.ParseBenchmarkPreset(""));
+            Assert.AreEqual(UIBenchmarkPresetType.CasualHud, UIDepthInspectorCLI.ParseBenchmarkPreset(null));
+            Assert.AreEqual(UIBenchmarkPresetType.CasualHud, UIDepthInspectorCLI.ParseBenchmarkPreset("NonExistentPreset"));
+        }
+
+        [Test]
+        public void CLI_GenerateBenchmark_ProducesGroundTruthAndInstructions()
+        {
+            string testDir = Path.Combine("BenchmarkTrials", "Test_CLI_Generate");
+            try
+            {
+                var gt = UIDepthInspectorCLI.GenerateBenchmark(UIBenchmarkPresetType.CleanReference, seed: 123, outDir: testDir);
+                if (gt == null)
+                    throw new Exception("Expected generated ground truth to be non-null");
+
+                string gtFile = Path.Combine(testDir, "benchmark-ground-truth.json");
+                string instrFile = Path.Combine(testDir, "challenge-instructions.md");
+                string milfoyTemplate = Path.Combine(testDir, "milfoy-agent", "trial-record-template.json");
+                string baselineTemplate = Path.Combine(testDir, "baseline-agent", "trial-record-template.json");
+
+                if (!File.Exists(gtFile))
+                    throw new Exception($"Expected {gtFile} to exist");
+                if (!File.Exists(instrFile))
+                    throw new Exception($"Expected {instrFile} to exist");
+                if (!File.Exists(milfoyTemplate))
+                    throw new Exception($"Expected {milfoyTemplate} to exist");
+                if (!File.Exists(baselineTemplate))
+                    throw new Exception($"Expected {baselineTemplate} to exist");
+
+                string gtContent = File.ReadAllText(gtFile);
+                var loadedGt = UIBenchmarkGroundTruth.FromJson(gtContent);
+                if (loadedGt.seed != 123)
+                    throw new Exception($"Expected loaded seed 123, got {loadedGt.seed}");
+                if (loadedGt.preset != "CleanReference")
+                    throw new Exception($"Expected preset CleanReference, got {loadedGt.preset}");
+
+                Assert.IsTrue(File.Exists(gtFile));
+                Assert.IsTrue(File.Exists(instrFile));
+                Assert.IsTrue(File.Exists(milfoyTemplate));
+                Assert.IsTrue(File.Exists(baselineTemplate));
+            }
+            finally
+            {
+                UISyntheticSceneGenerator.ClearBenchmarkUI();
+                if (Directory.Exists(testDir))
+                {
+                    try { Directory.Delete(testDir, true); } catch { }
+                }
+            }
+        }
+
+        [Test]
+        public void CLI_EvaluateBenchmark_CalculatesComparisonAndWritesReports()
+        {
+            string testDir = Path.Combine("BenchmarkTrials", "Test_CLI_Evaluate");
+            try
+            {
+                Directory.CreateDirectory(testDir);
+
+                var gt = new UIBenchmarkGroundTruth { benchmarkId = "CLI_TEST_BENCH", seed = 77 };
+                gt.anomalies.Add(new InjectedAnomalyEntry { anomalyId = "A1", targetPath = "Canvas/P1", type = "ANOMALY_GHOST_BLOCKER" });
+
+                var milfoyTrial = new AgentTrialRecord
+                {
+                    agentName = "MilfoyTestAgent",
+                    totalPromptTokens = 500,
+                    totalCompletionTokens = 100,
+                    turns = 2,
+                    durationSeconds = 2.5f,
+                    reportedIssuePaths = new List<string> { "Canvas/P1" }
+                };
+
+                var baselineTrial = new AgentTrialRecord
+                {
+                    agentName = "BaselineTestAgent",
+                    totalPromptTokens = 8000,
+                    totalCompletionTokens = 2000,
+                    turns = 10,
+                    durationSeconds = 45.0f,
+                    reportedIssuePaths = new List<string> { "Canvas/P1", "Canvas/FakeElement" }
+                };
+
+                string gtPath = Path.Combine(testDir, "ground-truth.json");
+                string milfoyPath = Path.Combine(testDir, "milfoy-result.json");
+                string baselinePath = Path.Combine(testDir, "baseline-result.json");
+
+                File.WriteAllText(gtPath, UIBenchmarkGroundTruth.ToJson(gt));
+                File.WriteAllText(milfoyPath, AgentTrialRecord.ToJson(milfoyTrial));
+                File.WriteAllText(baselinePath, AgentTrialRecord.ToJson(baselineTrial));
+
+                var comparison = UIDepthInspectorCLI.EvaluateBenchmark(gtPath, milfoyPath, baselinePath, testDir);
+
+                if (comparison == null)
+                    throw new Exception("Expected comparison result to not be null");
+                if (comparison.milfoyMetrics.precision != 1.0f)
+                    throw new Exception($"Expected milfoy precision 1.0, got {comparison.milfoyMetrics.precision}");
+                if (comparison.baselineMetrics.precision != 0.5f)
+                    throw new Exception($"Expected baseline precision 0.5, got {comparison.baselineMetrics.precision}");
+
+                string mdPath = Path.Combine(testDir, "benchmark-report.md");
+                string csvPath = Path.Combine(testDir, "benchmark-report.csv");
+
+                if (!File.Exists(mdPath))
+                    throw new Exception($"Expected report file {mdPath} to exist");
+                if (!File.Exists(csvPath))
+                    throw new Exception($"Expected report file {csvPath} to exist");
+
+                string md = File.ReadAllText(mdPath);
+                string csv = File.ReadAllText(csvPath);
+
+                if (!md.Contains("MilfoyTestAgent") || !csv.Contains("BaselineTestAgent"))
+                    throw new Exception("Expected reports to contain test agent names");
+
+                Assert.IsTrue(File.Exists(mdPath));
+                Assert.IsTrue(File.Exists(csvPath));
+                Assert.AreEqual(1.0f, comparison.milfoyMetrics.precision);
+                Assert.AreEqual(0.5f, comparison.baselineMetrics.precision);
+            }
+            finally
+            {
+                if (Directory.Exists(testDir))
+                {
+                    try { Directory.Delete(testDir, true); } catch { }
+                }
+            }
         }
     }
 }
