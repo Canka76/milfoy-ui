@@ -121,5 +121,136 @@ namespace UIDepthInspector.Editor.Tests
             Assert.AreEqual(5, loaded.truePositives);
             Assert.AreEqual(1.0f, loaded.precision, 0.001f);
         }
+
+        [Test]
+        public void Generator_CleanPreset_ProducesHierarchyWithZeroAnomalies()
+        {
+            var config = UIBenchmarkPreset.GetConfig(UIBenchmarkPresetType.CleanReference);
+            var root = UISyntheticSceneGenerator.Generate(config, seed: 100, out var groundTruth);
+            try
+            {
+                if (root == null)
+                    throw new Exception("Expected generated root GameObject to not be null");
+                if (groundTruth.totalAnomalies != 0)
+                    throw new Exception($"Expected 0 anomalies for CleanReference, got {groundTruth.totalAnomalies}");
+                if (groundTruth.anomalies.Count != 0)
+                    throw new Exception($"Expected 0 anomalies in list, got {groundTruth.anomalies.Count}");
+                if (groundTruth.totalElements <= 10)
+                    throw new Exception($"Expected > 10 total elements, got {groundTruth.totalElements}");
+
+                Assert.IsNotNull(root);
+                Assert.AreEqual(0, groundTruth.totalAnomalies);
+                Assert.AreEqual(0, groundTruth.anomalies.Count);
+                Assert.Greater(groundTruth.totalElements, 10);
+            }
+            finally
+            {
+                UISyntheticSceneGenerator.ClearBenchmarkUI();
+                if (GameObject.Find(UISyntheticSceneGenerator.RootContainerName) != null)
+                    throw new Exception("Expected benchmark UI to be completely cleared");
+                Assert.IsNull(GameObject.Find(UISyntheticSceneGenerator.RootContainerName));
+            }
+        }
+
+        [Test]
+        public void Generator_SameSeed_ProducesIdenticalHierarchyAndCount()
+        {
+            var config = UIBenchmarkPreset.GetConfig(UIBenchmarkPresetType.CasualHud);
+            int seed = 200;
+
+            var root1 = UISyntheticSceneGenerator.Generate(config, seed, out var gt1);
+            int elementCount1 = gt1.totalElements;
+            int anomalyCount1 = gt1.totalAnomalies;
+            var paths1 = new List<string>();
+            foreach (var rt in root1.GetComponentsInChildren<RectTransform>(true))
+            {
+                paths1.Add(UISyntheticSceneGenerator.GetHierarchyPath(rt, root1.transform));
+            }
+            UISyntheticSceneGenerator.ClearBenchmarkUI();
+
+            var root2 = UISyntheticSceneGenerator.Generate(config, seed, out var gt2);
+            int elementCount2 = gt2.totalElements;
+            int anomalyCount2 = gt2.totalAnomalies;
+            var paths2 = new List<string>();
+            foreach (var rt in root2.GetComponentsInChildren<RectTransform>(true))
+            {
+                paths2.Add(UISyntheticSceneGenerator.GetHierarchyPath(rt, root2.transform));
+            }
+            UISyntheticSceneGenerator.ClearBenchmarkUI();
+
+            if (elementCount1 != elementCount2)
+                throw new Exception($"Deterministic mismatch: element counts {elementCount1} != {elementCount2}");
+            if (anomalyCount1 != anomalyCount2)
+                throw new Exception($"Deterministic mismatch: anomaly counts {anomalyCount1} != {anomalyCount2}");
+            if (paths1.Count != paths2.Count)
+                throw new Exception($"Deterministic mismatch: path counts {paths1.Count} != {paths2.Count}");
+
+            for (int i = 0; i < paths1.Count; i++)
+            {
+                if (paths1[i] != paths2[i])
+                    throw new Exception($"Deterministic mismatch at index {i}: '{paths1[i]}' != '{paths2[i]}'");
+            }
+
+            Assert.AreEqual(elementCount1, elementCount2);
+            Assert.AreEqual(anomalyCount1, anomalyCount2);
+            CollectionAssert.AreEqual(paths1, paths2);
+        }
+
+        [Test]
+        public void Presets_AllTypes_ReturnValidConfigurations()
+        {
+            var types = (UIBenchmarkPresetType[])Enum.GetValues(typeof(UIBenchmarkPresetType));
+            foreach (var type in types)
+            {
+                var cfg = UIBenchmarkPreset.GetConfig(type);
+                if (cfg == null)
+                    throw new Exception($"Expected non-null config for preset {type}");
+                if (string.IsNullOrEmpty(cfg.name))
+                    throw new Exception($"Expected non-empty name for preset {type}");
+                if (cfg.targetElementCount <= 0)
+                    throw new Exception($"Expected targetElementCount > 0 for preset {type}");
+                if (cfg.canvasCount <= 0)
+                    throw new Exception($"Expected canvasCount > 0 for preset {type}");
+
+                Assert.IsNotNull(cfg);
+                Assert.IsNotEmpty(cfg.name);
+                Assert.Greater(cfg.targetElementCount, 0);
+                Assert.Greater(cfg.canvasCount, 0);
+            }
+        }
+
+        [Test]
+        public void Generator_ChaoticPreset_InjectsAnomalies()
+        {
+            var config = UIBenchmarkPreset.GetConfig(UIBenchmarkPresetType.ChaoticStress);
+            var root = UISyntheticSceneGenerator.Generate(config, seed: 400, out var groundTruth);
+            try
+            {
+                if (root == null)
+                    throw new Exception("Expected generated root to not be null");
+                if (groundTruth.totalAnomalies == 0)
+                    throw new Exception("Expected ChaoticStress preset to inject anomalies");
+                if (groundTruth.anomalies.Count == 0)
+                    throw new Exception("Expected groundTruth.anomalies to contain entries");
+
+                var types = new HashSet<string>();
+                foreach (var a in groundTruth.anomalies)
+                    types.Add(a.type);
+
+                if (!types.Contains("ANOMALY_GHOST_BLOCKER"))
+                    throw new Exception("Expected ANOMALY_GHOST_BLOCKER in chaotic anomalies");
+                if (!types.Contains("ANOMALY_SPATIAL_OVERLAP"))
+                    throw new Exception("Expected ANOMALY_SPATIAL_OVERLAP in chaotic anomalies");
+
+                Assert.Greater(groundTruth.totalAnomalies, 0);
+                Assert.IsTrue(types.Contains("ANOMALY_GHOST_BLOCKER"));
+                Assert.IsTrue(types.Contains("ANOMALY_SPATIAL_OVERLAP"));
+            }
+            finally
+            {
+                UISyntheticSceneGenerator.ClearBenchmarkUI();
+                Assert.IsNull(GameObject.Find(UISyntheticSceneGenerator.RootContainerName));
+            }
+        }
     }
 }

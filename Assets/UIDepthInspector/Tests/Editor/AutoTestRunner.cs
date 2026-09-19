@@ -41,6 +41,10 @@ namespace UIDepthInspector.Editor.Tests
             RunTest("AutoExporter_ExportActiveContext_GeneratesAnomaliesContextFiles", Test_AutoExporter, ref passed, ref failed);
             RunTest("GroundTruth_Serialization_RoundTripsAccurately", Test_GroundTruth_Serialization, ref passed, ref failed);
             RunTest("BenchmarkResult_Serialization_RoundTripsAccurately", Test_BenchmarkResult_Serialization, ref passed, ref failed);
+            RunTest("Generator_CleanPreset_ProducesHierarchyWithZeroAnomalies", Test_Generator_CleanPreset, ref passed, ref failed);
+            RunTest("Generator_SameSeed_ProducesIdenticalHierarchyAndCount", Test_Generator_DeterministicSeeding, ref passed, ref failed);
+            RunTest("Presets_AllTypes_ReturnValidConfigurations", Test_Presets_Configurations, ref passed, ref failed);
+            RunTest("Generator_ChaoticPreset_InjectsAnomalies", Test_Generator_ChaoticPreset, ref passed, ref failed);
             Debug.Log($"================ TEST SUMMARY: {passed} PASSED, {failed} FAILED ================");
 
             if (Application.isBatchMode)
@@ -703,6 +707,30 @@ namespace UIDepthInspector.Editor.Tests
         {
             var test = new UIBenchmarkTests();
             test.BenchmarkResult_Serialization_RoundTripsAccurately();
+        }
+
+        static void Test_Generator_CleanPreset()
+        {
+            var test = new UIBenchmarkTests();
+            test.Generator_CleanPreset_ProducesHierarchyWithZeroAnomalies();
+        }
+
+        static void Test_Generator_DeterministicSeeding()
+        {
+            var test = new UIBenchmarkTests();
+            test.Generator_SameSeed_ProducesIdenticalHierarchyAndCount();
+        }
+
+        static void Test_Presets_Configurations()
+        {
+            var test = new UIBenchmarkTests();
+            test.Presets_AllTypes_ReturnValidConfigurations();
+        }
+
+        static void Test_Generator_ChaoticPreset()
+        {
+            var test = new UIBenchmarkTests();
+            test.Generator_ChaoticPreset_InjectsAnomalies();
         }
     }
 }
