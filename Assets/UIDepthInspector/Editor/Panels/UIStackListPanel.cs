@@ -18,16 +18,17 @@ namespace UIDepthInspector.Editor.Panels
         public Action<UIElementEntry> OnSoloToggled;
         public Action<int, Color> OnCustomColorAssigned;
         public Action<int> OnCustomColorReset;
+        public int CanvasFilterId { get; private set; } = -1; // -1 = All
 
         ListView _listView;
         Button _copyBtn;
-        List<UIElementEntry> _filteredEntries = new();
         IReadOnlyList<UIElementEntry> _allEntries;
+        readonly List<UIElementEntry> _filteredEntries = new();
         int _selectedGlobalIndex = -1;
+        bool _isUpdatingSelection;
 
         public void Bind(VisualElement root)
         {
-            if (root == null) return;
 
             _listView = root.Q<ListView>("stack-list");
             if (_listView != null)
@@ -43,6 +44,8 @@ namespace UIDepthInspector.Editor.Panels
 
                 _listView.selectionChanged += selection =>
                 {
+                    if (_isUpdatingSelection) return;
+
                     bool found = false;
                     foreach (var item in selection)
                     {
@@ -58,7 +61,6 @@ namespace UIDepthInspector.Editor.Panels
                     {
                         _selectedGlobalIndex = -1;
                     }
-                    _listView.RefreshItems();
                 };
             }
 
@@ -66,6 +68,12 @@ namespace UIDepthInspector.Editor.Panels
             if (_copyBtn != null)
             {
                 _copyBtn.clicked += CopyStackToClipboard;
+            }
+
+            var copyAiBtn = root.Q<Button>("btn-copy-ai");
+            if (copyAiBtn != null)
+            {
+                copyAiBtn.clicked += CopyAIContextToClipboard;
             }
         }
 
@@ -102,21 +110,30 @@ namespace UIDepthInspector.Editor.Panels
 
         public void SelectEntry(int globalDrawIndex)
         {
+            if (_selectedGlobalIndex == globalDrawIndex) return;
             _selectedGlobalIndex = globalDrawIndex;
             if (_listView == null) return;
-            for (int i = 0; i < _filteredEntries.Count; i++)
+
+            _isUpdatingSelection = true;
+            try
             {
-                if (_filteredEntries[i].GlobalDrawIndex == globalDrawIndex)
+                for (int i = 0; i < _filteredEntries.Count; i++)
                 {
-                    _listView.SetSelectionWithoutNotify(new[] { i });
-                    _listView.ScrollToItem(i);
-                    _listView.RefreshItems();
-                    return;
+                    if (_filteredEntries[i].GlobalDrawIndex == globalDrawIndex)
+                    {
+                        _listView.SetSelectionWithoutNotify(new[] { i });
+                        _listView.ScrollToItem(i);
+                        return;
+                    }
                 }
+                _listView.SetSelectionWithoutNotify(Array.Empty<int>());
             }
-            _listView.ClearSelection();
-            _listView.RefreshItems();
+            finally
+            {
+                _isUpdatingSelection = false;
+            }
         }
+
         sealed class RowHolder
         {
             public UIElementEntry Entry;
@@ -376,6 +393,29 @@ namespace UIDepthInspector.Editor.Panels
                 }
             }
         }
+        void CopyAIContextToClipboard()
+        {
+            if (_filteredEntries == null || _filteredEntries.Count == 0)
+            {
+                if (_allEntries == null || _allEntries.Count == 0) return;
+            }
+
+            var targetEntries = _filteredEntries.Count > 0 ? _filteredEntries : (IReadOnlyList<UIElementEntry>)_allEntries;
+            Canvas rootCanvas = null;
+            if (targetEntries.Count > 0 && targetEntries[0].Transform != null)
+            {
+                rootCanvas = targetEntries[0].Transform.GetComponentInParent<Canvas>();
+            }
+
+            bool isShift = Event.current != null && Event.current.shift;
+            string output = isShift 
+                ? Export.UIAIContextExporter.ExportToJson(targetEntries, rootCanvas, Export.ExportMode.Anomalies, prettyPrint: true)
+                : Export.UIAIContextExporter.ExportToCompactMarkdown(targetEntries, rootCanvas, Export.ExportMode.Anomalies);
+
+            EditorGUIUtility.systemCopyBuffer = output;
+            Debug.Log($"[UIDepthInspector] AI Diagnostic Context ({ (isShift ? "JSON" : "Compact Markdown") }) copied to clipboard ({output.Length} chars).");
+        }
+
         void CopyStackToClipboard()
         {
             if (_filteredEntries.Count == 0) return;
