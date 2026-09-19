@@ -304,6 +304,8 @@ namespace UIDepthInspector.Editor.Benchmark
         {
             try
             {
+                UIDepthInspectorWindow.ShowWindow();
+
                 var rootGo = GameObject.Find(UISyntheticSceneGenerator.RootContainerName);
                 if (rootGo != null)
                 {
@@ -311,7 +313,6 @@ namespace UIDepthInspector.Editor.Benchmark
                     Selection.activeGameObject = canvas != null ? canvas.gameObject : rootGo;
                 }
 
-                UIDepthInspectorWindow.ShowWindow();
                 _statusMessage = "Opened Milfoy 3D Viewport and focused generated benchmark Canvas.";
                 _statusType = MessageType.Info;
             }
