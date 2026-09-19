@@ -35,7 +35,7 @@ namespace UIDepthInspector.Editor.Core
             else
             {
                 // Gather root canvases from all loaded scenes
-                var allCanvases = Object.FindObjectsByType<Canvas>();
+                var allCanvases = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
                 foreach (var c in allCanvases)
                 {
                     if (c.isRootCanvas)
