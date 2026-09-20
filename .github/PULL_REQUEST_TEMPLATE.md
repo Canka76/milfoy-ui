@@ -1,11 +1,20 @@
-## What does this PR do?
-<!-- One sentence. -->
+---
+name: Pull Request
+about: Propose changes to Milfoy
+title: ''
+labels: ''
+assignees: ''
 
-## Linked issue
-Closes #
+---
+
+## Description
+Provide a brief description of the changes introduced in this PR.
+
+## Related Issue
+Closes #[issue number]
 
 ## Checklist
-- [ ] Commits follow Conventional Commits format (`feat:`, `fix:`, `docs:`, etc.)
-- [ ] Tested in Unity 6 (6000.0.x) — Edit Mode and/or Play Mode as applicable
-- [ ] No new compiler warnings introduced
-- [ ] `CHANGELOG.md` NOT manually edited — release-please manages it automatically
+- [ ] My code follows the project's zero-GC and zero-idle-overhead architecture rules.
+- [ ] I have added or updated unit tests in `Assets/UIDepthInspector/Tests/Editor/`.
+- [ ] All existing editor tests pass successfully.
+- [ ] I have tested this change against Unity 6.

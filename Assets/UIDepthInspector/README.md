@@ -152,6 +152,13 @@ Unity.exe -batchmode -quit -projectPath . \
 
 ---
 
+## 🌟 Community, Support & Contributing
+
+- **Star on GitHub**: If Milfoy saves you time debugging uGUI or cuts your AI agent token costs, consider giving us a star on [GitHub](https://github.com/Canka76/milfoy-ui)!
+- **Contributing**: We welcome bug reports, feature requests, and PRs. Check out [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+- **OpenUPM**: Milfoy is fully available on OpenUPM for instant package integration.
+
+
 ## 📄 License
 
 This project is licensed under the **MIT License**. See [LICENSE.md](LICENSE.md) for details.

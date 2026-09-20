@@ -9,6 +9,19 @@ Thank you for considering a contribution!
 3. Make your changes with atomic commits.
 4. Open a Pull Request against `main`.
 
+## 🛡️ Core Engineering Rules for Contributors
+
+1. **Zero-GC Guarantees**: Any additions to `UIRenderTreeCollector`, `UIDiagnosticAnalyzer`, or inspection hot paths **must avoid heap allocations**. Always use `TryGetComponent<T>(out var comp)`, cache pooled structs, and avoid LINQ or lambda allocations in update/render loops.
+2. **Pure C# Testability**: Test additions live in `Assets/UIDepthInspector/Tests/Editor/`. Tests must run headlessly without requiring manual scene interactions where possible.
+3. **Zero Idle Overhead**: Never introduce background polling threads, open sockets, or idle update loops. Milfoy relies on event-driven hooks (`EditorSceneManager.sceneSaved`).
+
+## 💡 Good First Issue Paths
+
+Looking for a place to start? Here are great entry points for contributors:
+- **New Diagnostic Rules**: Add a new sanity check in `UIDiagnosticAnalyzer.cs` (e.g., detecting oversized Mask components or unassigned layout groups).
+- **Benchmark Presets**: Add a new procedural scene preset in `UIBenchmarkPreset.cs` (e.g., complex RPG inventory UI or sprawling RTS minimap).
+- **Export Formats**: Expand AI context exporters in `UIAIContextExporter.cs` to support additional AI agent payload requirements.
+
 ## Commit Rules
 
 This project uses [Conventional Commits](https://www.conventionalcommits.org/). Every commit message must follow this format:
