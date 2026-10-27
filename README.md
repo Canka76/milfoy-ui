@@ -18,8 +18,6 @@
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/Canka76/milfoy-ui/main/.github/assets/banner.gif" alt="milfoy-ui banner" width="100%"/>
-  <br/>
-  <sub>🎬 <b>Video Demo:</b> <a href="https://github.com/Canka76/milfoy-ui/raw/main/.github/assets/MilfoyDemo.mp4">Watch the full 3D Exploded Viewport video demo (MilfoyDemo.mp4)</a></sub>
 </p>
 
 ---
@@ -57,7 +55,9 @@ In rigorous, head-to-head empirical trials comparing Milfoy against a baseline A
 
 ### 🔍 1. Interactive 3D Exploded Viewport
 
-> 🎬 **Demo Video:** [Watch the interactive 3D Exploded View in action (`.github/assets/MilfoyDemo.mp4`)](https://github.com/Canka76/milfoy-ui/raw/main/.github/assets/MilfoyDemo.mp4)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Canka76/milfoy-ui/main/.github/assets/exploded-view-demo.gif" alt="3D Exploded Viewport in action" width="100%"/>
+</p>
 
 - **Z-Axis Layer Separation**: Smoothly spread UI layers along the depth axis using the **Layer Spacing (Z)** slider to inspect exact draw ordering.
 - **Intuitive Camera Navigation**: Orbit (`Left Drag` or `Alt + Drag`), Pan (`Middle Drag`), and Zoom (`Scroll Wheel`) in perspective or orthographic modes.
