@@ -28,7 +28,7 @@ namespace UIDepthInspector.Editor.Export
             string canvasFilter = GetArg(args, "-canvasName", "");
 
             ExportMode mode = ParseExportMode(modeStr);
-            var canvases = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include);
+            var canvases = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             Canvas targetCanvas = null;
 
             if (canvases != null && canvases.Length > 0)
@@ -235,7 +235,7 @@ Output an `AgentTrialRecord` JSON file containing your reported issue paths:
             File.WriteAllText(Path.Combine(baselineAgentDir, "trial-record-template.json"), AgentTrialRecord.ToJson(emptyBaselineRecord, prettyPrint: true));
 
             // Export active Milfoy UI context from the generated hierarchy
-            var canvases = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include);
+            var canvases = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             if (canvases != null && canvases.Length > 0)
             {
                 Canvas primaryCanvas = null;
