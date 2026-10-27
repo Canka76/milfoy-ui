@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1](https://github.com/Canka76/milfoy-ui/compare/v0.2.0...v0.2.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* **cli:** provide FindObjectsSortMode overload to FindObjectsByType ([98e1d16](https://github.com/Canka76/milfoy-ui/commit/98e1d16d14f6c4407ac9a335d7b4a5abb5e4a7b3))
+
 ## [0.2.0](https://github.com/Canka76/milfoy-ui/compare/v0.1.0...v0.2.0) (2026-09-19)
 
 
